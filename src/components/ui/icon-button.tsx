@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Colors, Space } from '@/constants/theme';
+import { Space, type Palette } from '@/constants/theme';
+import { useStyles, useTheme } from '@/theme';
 
 import { AppText } from './app-text';
 import { Icon, type IconName } from './icon';
@@ -22,8 +23,10 @@ export function IconButton({
   onPress,
   count,
   size = 48,
-  background = Colors.surface,
+  background,
 }: IconButtonProps) {
+  const { colors } = useTheme();
+  const styles = useStyles(createStyles);
   return (
     <Pressable
       accessibilityRole="button"
@@ -32,14 +35,19 @@ export function IconButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        { width: size, height: size, borderRadius: size / 2, backgroundColor: background },
-        background === Colors.surface && styles.outlined,
+        {
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: background ?? colors.surface,
+        },
+        !background && styles.outlined,
         pressed && styles.pressed,
       ]}>
       <Icon name={icon} size={22} />
       {!!count && count > 0 && (
         <View style={styles.count}>
-          <AppText variant="smallCaption" style={styles.countText}>
+          <AppText variant="smallCaption" color="ink" style={styles.countText}>
             {count > 9 ? '9+' : count}
           </AppText>
         </View>
@@ -48,33 +56,34 @@ export function IconButton({
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  outlined: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  pressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.95 }],
-  },
-  count: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    minWidth: 18,
-    height: 18,
-    paddingHorizontal: Space.xs,
-    borderRadius: 9,
-    backgroundColor: Colors.pink,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  countText: {
-    fontWeight: '700',
-    lineHeight: 14,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    button: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    outlined: {
+      borderWidth: 1,
+      borderColor: c.border,
+    },
+    pressed: {
+      opacity: 0.8,
+      transform: [{ scale: 0.95 }],
+    },
+    count: {
+      position: 'absolute',
+      top: 2,
+      right: 2,
+      minWidth: 18,
+      height: 18,
+      paddingHorizontal: Space.xs,
+      borderRadius: 9,
+      backgroundColor: c.pink,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    countText: {
+      fontWeight: '700',
+      lineHeight: 14,
+    },
+  });

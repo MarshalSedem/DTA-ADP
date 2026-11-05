@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { ChoiceChips } from '@/components/marketplace/choice-chips';
-import { marketplaceHeader } from '@/components/marketplace/header-options';
+import { useMarketplaceHeader } from '@/components/marketplace/header-options';
 import { OfflineBanner } from '@/components/marketplace/offline-banner';
 import { PrototypeNotice } from '@/components/marketplace/prototype-notice';
 import { Notice } from '@/components/notice';
@@ -25,6 +25,7 @@ const METHODS: readonly SimulatedPaymentMethod[] = ['mobileMoney', 'cashOnDelive
 /** Payment step 2 of 2 — one action: Confirm simulated payment. */
 export default function PaymentConfirmScreen() {
   const t = useT();
+  const headerOptions = useMarketplaceHeader();
   const toast = useToast();
   const params = useLocalSearchParams<{ dealerId: string; productId: string; quantity: string }>();
   const item = getPurchasableItem(params.dealerId, params.productId);
@@ -50,7 +51,7 @@ export default function PaymentConfirmScreen() {
 
   return (
     <Screen variant="stack">
-      <Stack.Screen options={{ ...marketplaceHeader, title: t('payments.confirm.headerTitle') }} />
+      <Stack.Screen options={{ ...headerOptions, title: t('payments.confirm.headerTitle') }} />
       <PrototypeNotice kind="noRealMoney" />
       <OfflineBanner />
 

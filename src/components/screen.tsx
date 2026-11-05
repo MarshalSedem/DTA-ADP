@@ -3,7 +3,8 @@ import type { ReactNode } from 'react';
 import { KeyboardAvoidingView, ScrollView, StyleSheet, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors, Layout, Space } from '@/constants/theme';
+import { Layout, Space, type Palette } from '@/constants/theme';
+import { useStyles } from '@/theme';
 
 type ScreenProps = Omit<ScrollViewProps, 'children'> & {
   children: ReactNode;
@@ -18,6 +19,7 @@ type ScreenProps = Omit<ScrollViewProps, 'children'> & {
 export function Screen({ children, variant, contentContainerStyle, ...rest }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
+  const styles = useStyles(createStyles);
   return (
     <KeyboardAvoidingView
       behavior="padding"
@@ -41,19 +43,20 @@ export function Screen({ children, variant, contentContainerStyle, ...rest }: Sc
   );
 }
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  screen: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  content: {
-    paddingHorizontal: Layout.screenPadding,
-    gap: Space.xl,
-    width: '100%',
-    maxWidth: Layout.maxContentWidth,
-    alignSelf: 'center',
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    screen: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    content: {
+      paddingHorizontal: Layout.screenPadding,
+      gap: Space.xl,
+      width: '100%',
+      maxWidth: Layout.maxContentWidth,
+      alignSelf: 'center',
+    },
+  });

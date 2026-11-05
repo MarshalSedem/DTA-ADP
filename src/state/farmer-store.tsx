@@ -1,26 +1,16 @@
 /**
- * App-wide farmer state. Screens read and change data only through here, so
- * every screen stays in sync (e.g. requesting a review on a diagnosis updates
- * the Home "pending review" count and the Human Review list).
+ * App-wide farmer state, loaded from the AgriTrust API after sign-in. Screens read and change
+ * data only through here, so every screen stays in sync (e.g. requesting a review on a
+ * diagnosis updates the Home "pending review" count and the Human Review list).
  *
- * Backend integration: initial values come from `@/data/mock-farmer` and all
- * writes go through `@/services/farmer-api`. Replace those with real API calls;
- * the screens shouldn't need to change.
+ * All reads and writes go through `@/services/farmer-api`. The provider renders its children
+ * only once the first load has finished, so screens can rely on the data being present.
  */
-import { createContext, use, useState, type ReactNode } from 'react';
+import { createContext, use, useCallback, useEffect, useState, type ReactNode } from 'react';
 
-import {
-  mockActiveFarmRecords,
-  mockConsents,
-  mockDataInventory,
-  mockDiagnoses,
-  mockLatestRecommendation,
-  mockMaizeMarket,
-  mockModelInfo,
-  mockProfile,
-  mockReviewCases,
-} from '@/data/mock-farmer';
+import { errorMessage } from '@/services/api-client';
 import * as api from '@/services/farmer-api';
+import { useSession } from '@/state/session';
 import type {
   AccountDeletionStatus,
   AiRecommendation,
@@ -44,6 +34,10 @@ type FarmerState = {
   marketComparison: MarketComparison | null;
   dataInventory: DataInventoryItem[];
 
+  /** Re-fetch everything (pull to refresh) — picks up officer decisions. */
+  refresh: () => Promise<void>;
+  refreshing: boolean;
+
   // Consent
   consents: Consents;
   saveConsents: (next: Consents) => Promise<void>;
@@ -63,7 +57,10 @@ type FarmerState = {
    * on first (the backend enforces it too).
    */
   requestReview: (source: ReviewSource, summary: string) => Promise<string>;
-  submitEvidence: (caseId: string, evidence: { note: string; imageUri: string | null }) => Promise<void>;
+  submitEvidence: (
+    caseId: string,
+    evidence: { note: string; imageUri: string | null },
+  ) => Promise<void>;
 
   // AI adviser
   chatMessages: ChatMessage[];
@@ -78,144 +75,170 @@ type FarmerState = {
 
 const FarmerContext = createContext<FarmerState | null>(null);
 
-const uid = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+type LoadState =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | { status: 'ready'; data: api.FarmerSnapshot };
 
-export function FarmerProvider({ children }: { children: ReactNode }) {
-  const [consents, setConsents] = useState<Consents>(mockConsents);
-  const [diagnoses, setDiagnoses] = useState<DiagnosisRecord[]>(mockDiagnoses);
-  const [reviewCases, setReviewCases] = useState<ReviewCase[]>(mockReviewCases);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+type FarmerProviderProps = {
+  children: ReactNode;
+  /** Shown while the first load is in progress, or when it failed (with a retry). */
+  renderGate: (state: { error: string | null; retry: () => void }) => ReactNode;
+};
+
+export function FarmerProvider({ children, renderGate }: FarmerProviderProps) {
+  const { profile } = useSession();
+  const [load, setLoad] = useState<LoadState>({ status: 'loading' });
+  const [refreshing, setRefreshing] = useState(false);
   const [adviserBusy, setAdviserBusy] = useState(false);
-  const [accountDeletion, setAccountDeletion] = useState<AccountDeletionStatus>('none');
 
-  const updateDiagnosis = (id: string, patch: Partial<DiagnosisRecord>) =>
-    setDiagnoses((prev) => prev.map((d) => (d.id === id ? { ...d, ...patch } : d)));
+  const fetchAll = useCallback(async () => {
+    try {
+      const data = await api.loadFarmerSnapshot();
+      setLoad({ status: 'ready', data });
+    } catch (error) {
+      setLoad((prev) =>
+        // Keep showing data we already have if a background refresh fails.
+        prev.status === 'ready'
+          ? prev
+          : { status: 'error', message: errorMessage(error, 'Could not load your farm data.') },
+      );
+      throw error;
+    }
+  }, []);
 
-  const pendingReviewCount = reviewCases.filter(
-    (c) => c.status === 'pending' || c.status === 'needsMoreEvidence',
-  ).length;
+  useEffect(() => {
+    fetchAll().catch(() => {});
+  }, [fetchAll]);
+
+  if (load.status !== 'ready' || !profile) {
+    return renderGate({
+      error: load.status === 'error' ? load.message : null,
+      retry: () => {
+        setLoad({ status: 'loading' });
+        fetchAll().catch(() => {});
+      },
+    });
+  }
+
+  const data = load.data;
+  const updateWith = (fn: (d: api.FarmerSnapshot) => Partial<api.FarmerSnapshot>) =>
+    setLoad((prev) =>
+      prev.status === 'ready' ? { ...prev, data: { ...prev.data, ...fn(prev.data) } } : prev,
+    );
+  const update = (patch: Partial<api.FarmerSnapshot>) => updateWith(() => patch);
+
+  const replaceDiagnosis = (record: DiagnosisRecord) =>
+    updateWith((d) => ({ diagnoses: d.diagnoses.map((x) => (x.id === record.id ? record : x)) }));
+  const upsertCase = (c: ReviewCase) =>
+    updateWith((d) => ({
+      reviewCases: d.reviewCases.some((x) => x.id === c.id)
+        ? d.reviewCases.map((x) => (x.id === c.id ? c : x))
+        : [c, ...d.reviewCases],
+    }));
 
   const value: FarmerState = {
-    profile: mockProfile,
-    activeFarmRecords: mockActiveFarmRecords,
-    modelInfo: mockModelInfo,
-    latestRecommendation: mockLatestRecommendation,
-    marketComparison: mockMaizeMarket,
-    dataInventory: mockDataInventory,
+    profile,
+    activeFarmRecords: data.activeFarmRecords,
+    modelInfo: data.modelInfo,
+    latestRecommendation: data.latestRecommendation,
+    marketComparison: data.marketComparison,
+    dataInventory: data.dataInventory,
 
-    consents,
-    saveConsents: async (next) => {
-      await api.saveConsents(next);
-      setConsents(next);
+    refreshing,
+    refresh: async () => {
+      setRefreshing(true);
+      try {
+        await fetchAll();
+      } finally {
+        setRefreshing(false);
+      }
     },
 
-    diagnoses,
+    consents: data.consents,
+    saveConsents: async (next) => {
+      update({ consents: await api.saveConsents(next) });
+    },
+
+    diagnoses: data.diagnoses,
     submitDiagnosis: async (input) => {
-      const { diagnosisId, result } = await api.submitDiagnosis(input);
-      const record: DiagnosisRecord = {
-        id: diagnosisId,
-        createdAt: new Date().toISOString(),
-        cropType: input.cropType,
-        district: input.district,
-        symptoms: input.symptoms,
-        trainingConsent: input.trainingConsent,
-        imageUri: input.imageUri,
-        imageDeleted: false,
-        result,
-        reportedIncorrect: false,
-      };
-      setDiagnoses((prev) => [record, ...prev]);
-      return diagnosisId;
+      const record = await api.submitDiagnosis(input);
+      updateWith((d) => ({ diagnoses: [record, ...d.diagnoses] }));
+      // In districts with restricted high-risk advice the API opens a review case itself.
+      if (record.reviewCaseId) update({ reviewCases: await api.fetchReviewCases() });
+      return record.id;
     },
     deleteDiagnosisImage: async (diagnosisId) => {
-      await api.deleteDiagnosisImage(diagnosisId);
-      updateDiagnosis(diagnosisId, { imageUri: null, imageDeleted: true });
+      replaceDiagnosis(await api.deleteDiagnosisImage(diagnosisId));
     },
     reportIncorrectResult: async (diagnosisId, comment) => {
       await api.reportIncorrectResult(diagnosisId, comment);
-      updateDiagnosis(diagnosisId, { reportedIncorrect: true });
+      updateWith((d) => ({
+        diagnoses: d.diagnoses.map((x) =>
+          x.id === diagnosisId ? { ...x, reportedIncorrect: true } : x,
+        ),
+      }));
     },
 
-    reviewCases,
-    pendingReviewCount,
-    requestReview: async (source, summary) => {
-      const { caseId } = await api.requestReview(source);
-      const newCase: ReviewCase = {
-        id: caseId,
-        summary,
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        source,
-        evidence: [],
-      };
-      setReviewCases((prev) => [newCase, ...prev]);
-      if (source.type === 'diagnosis') {
-        updateDiagnosis(source.diagnosisId, { reviewCaseId: caseId });
-      } else {
-        setChatMessages((prev) =>
-          prev.map((m) =>
-            m.id === source.messageId && m.role === 'assistant' ? { ...m, reviewCaseId: caseId } : m,
-          ),
-        );
-      }
-      return caseId;
+    reviewCases: data.reviewCases,
+    pendingReviewCount: data.reviewCases.filter(
+      (c) => c.status === 'pending' || c.status === 'needsMoreEvidence',
+    ).length,
+    requestReview: async (source) => {
+      const reviewCase = await api.requestReview(source);
+      upsertCase(reviewCase);
+      updateWith((d) =>
+        source.type === 'diagnosis'
+          ? {
+              diagnoses: d.diagnoses.map((x) =>
+                x.id === source.diagnosisId ? { ...x, reviewCaseId: reviewCase.id } : x,
+              ),
+            }
+          : {
+              chatMessages: d.chatMessages.map((m) =>
+                m.id === source.messageId && m.role === 'assistant'
+                  ? { ...m, reviewCaseId: reviewCase.id }
+                  : m,
+              ),
+            },
+      );
+      return reviewCase.id;
     },
     submitEvidence: async (caseId, evidence) => {
-      const saved = await api.submitEvidence(caseId, evidence);
-      setReviewCases((prev) =>
-        prev.map((c) =>
-          c.id === caseId ? { ...c, status: 'pending', evidence: [...c.evidence, saved] } : c,
-        ),
-      );
+      upsertCase(await api.submitEvidence(caseId, evidence));
     },
 
-    chatMessages,
+    chatMessages: data.chatMessages,
     adviserBusy,
     askAdviser: async (question) => {
-      const createdAt = new Date().toISOString();
-      setChatMessages((prev) => [...prev, { id: uid('msg'), role: 'user', text: question, createdAt }]);
+      // Show the question straight away; it's replaced by the saved exchange on success.
+      const pendingId = `pending-${Date.now()}`;
+      updateWith((d) => ({
+        chatMessages: [
+          ...d.chatMessages,
+          { id: pendingId, role: 'user', text: question, createdAt: new Date().toISOString() },
+        ],
+      }));
       setAdviserBusy(true);
       try {
-        const answer = await api.askAdviser(question);
-        setChatMessages((prev) => [
-          ...prev,
-          { id: uid('msg'), role: 'assistant', answer, createdAt: new Date().toISOString() },
-        ]);
+        const exchange = await api.askAdviser(question);
+        updateWith((d) => ({
+          chatMessages: [...d.chatMessages.filter((m) => m.id !== pendingId), ...exchange],
+        }));
+      } catch (error) {
+        updateWith((d) => ({ chatMessages: d.chatMessages.filter((m) => m.id !== pendingId) }));
+        throw error;
       } finally {
         setAdviserBusy(false);
       }
     },
 
-    accountDeletion,
+    accountDeletion: data.accountDeletionPending ? 'pending' : 'none',
     requestAccountDeletion: async () => {
       await api.requestAccountDeletion();
-      setAccountDeletion('pending');
+      update({ accountDeletionPending: true });
     },
-    buildDataExport: () =>
-      api.fetchDataExport({
-        exportedAt: new Date().toISOString(),
-        profile: { name: mockProfile.name, phone: mockProfile.phone, district: mockProfile.district },
-        consents,
-        activeCases: reviewCases
-          .filter((c) => c.status === 'pending' || c.status === 'needsMoreEvidence')
-          .map((c) => c.id),
-        reviewCases: reviewCases.map(({ id, summary, status, createdAt }) => ({
-          id,
-          summary,
-          status,
-          createdAt,
-        })),
-        diagnoses: diagnoses.map(({ id, createdAt, cropType, district, symptoms, result }) => ({
-          id,
-          createdAt,
-          cropType,
-          district,
-          symptoms,
-          result: result.label,
-          confidence: result.confidence,
-        })),
-        adviserMessages: chatMessages,
-      }),
+    buildDataExport: () => api.fetchDataExport(),
   };
 
   return <FarmerContext value={value}>{children}</FarmerContext>;

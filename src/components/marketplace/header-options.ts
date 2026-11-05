@@ -1,18 +1,21 @@
 import type { NativeStackNavigationOptions } from 'expo-router';
 
-import { Colors } from '@/constants/theme';
+import { useTheme } from '@/theme';
 
 /**
  * Same header as the app's other detail pages (mirrors `detailHeader` in
- * src/app/_layout.tsx). Marketplace and payment screens apply it themselves with
- * <Stack.Screen options={...} />, so the root layout doesn't need editing and
+ * src/app/(app)/_layout.tsx). Marketplace and payment screens apply it themselves with
+ * <Stack.Screen options={...} />, so the layout doesn't need editing and
  * titles can come from i18n.
  */
-export const marketplaceHeader: NativeStackNavigationOptions = {
-  headerShown: true,
-  headerShadowVisible: false,
-  headerStyle: { backgroundColor: Colors.background },
-  headerTintColor: Colors.textPrimary,
-  headerTitleStyle: { fontWeight: '600' },
-  headerBackButtonDisplayMode: 'minimal',
-};
+export function useMarketplaceHeader(): NativeStackNavigationOptions {
+  const { colors } = useTheme();
+  return {
+    headerShown: true,
+    headerShadowVisible: false,
+    headerStyle: { backgroundColor: colors.background },
+    headerTintColor: colors.textPrimary,
+    headerTitleStyle: { fontWeight: '600' },
+    headerBackButtonDisplayMode: 'minimal',
+  };
+}

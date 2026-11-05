@@ -1,14 +1,15 @@
 import { ActivityIndicator, Pressable, StyleSheet, View, type PressableProps } from 'react-native';
 
-import { Colors, Layout, Radius, Space, type ColorToken } from '@/constants/theme';
+import { Layout, Radius, Space, type ColorToken, type Palette } from '@/constants/theme';
+import { useTheme } from '@/theme';
 
 import { AppText } from './app-text';
 import { Icon, type IconName } from './icon';
 
 type Variant =
-  /** White pill — primary CTA on dark surfaces. */
+  /** White pill — primary CTA on dark surfaces (white in both themes). */
   | 'primary'
-  /** Cyan pill — primary CTA on light surfaces. */
+  /** Mint pill — primary CTA on light surfaces. */
   | 'accent'
   /** Dark gray pill — secondary action on dark surfaces. */
   | 'darkSecondary'
@@ -17,13 +18,13 @@ type Variant =
   /** Text-only link-style action. */
   | 'link';
 
-const VARIANTS: Record<Variant, { bg: string; fg: ColorToken }> = {
-  primary: { bg: Colors.surface, fg: 'textPrimary' },
-  accent: { bg: Colors.primary, fg: 'textPrimary' },
-  darkSecondary: { bg: Colors.surfaceDarkSecondary, fg: 'textInverse' },
-  secondary: { bg: Colors.backgroundSecondary, fg: 'textPrimary' },
+const variants = (c: Palette): Record<Variant, { bg: string; fg: ColorToken }> => ({
+  primary: { bg: c.white, fg: 'ink' },
+  accent: { bg: c.primary, fg: 'ink' },
+  darkSecondary: { bg: c.surfaceDarkSecondary, fg: 'textInverse' },
+  secondary: { bg: c.backgroundSecondary, fg: 'textPrimary' },
   link: { bg: 'transparent', fg: 'textPrimary' },
-};
+});
 
 type ButtonProps = Omit<PressableProps, 'children' | 'style'> & {
   label: string;
@@ -44,7 +45,8 @@ export function Button({
   fullWidth,
   ...rest
 }: ButtonProps) {
-  const { bg, fg } = VARIANTS[variant];
+  const { colors } = useTheme();
+  const { bg, fg } = variants(colors)[variant];
   const isLink = variant === 'link';
   const isDisabled = disabled || loading;
 
@@ -64,14 +66,11 @@ export function Button({
       ]}
       {...rest}>
       {loading ? (
-        <ActivityIndicator color={Colors[fg]} />
+        <ActivityIndicator color={colors[fg]} />
       ) : (
         <View style={styles.content}>
           {leadingIcon && <Icon name={leadingIcon} size={18} color={fg} />}
-          <AppText
-            variant="button"
-            color={fg}
-            style={isLink && styles.linkText}>
+          <AppText variant="button" color={fg} style={isLink && styles.linkText}>
             {label}
           </AppText>
           {trailingIcon && <Icon name={trailingIcon} size={16} color={fg} />}

@@ -2,7 +2,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 
-import { marketplaceHeader } from '@/components/marketplace/header-options';
+import { useMarketplaceHeader } from '@/components/marketplace/header-options';
 import { PriceBreakdownCard } from '@/components/marketplace/price-breakdown';
 import { PrototypeNotice } from '@/components/marketplace/prototype-notice';
 import { SyncBanner, SyncStatusBadge } from '@/components/marketplace/sync-status';
@@ -12,14 +12,17 @@ import { AppText } from '@/components/ui/app-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
-import { Colors, Space } from '@/constants/theme';
+import { Space, type Palette } from '@/constants/theme';
 import { useT } from '@/i18n';
 import { useTransactions } from '@/state/marketplace-store';
+import { useStyles } from '@/theme';
 import { formatDateTime } from '@/utils/format';
 
 /** Receipt — one action: Done (or Back, when opened from the ledger). */
 export default function ReceiptScreen() {
   const t = useT();
+  const headerOptions = useMarketplaceHeader();
+  const styles = useStyles(createStyles);
   const { txId, from } = useLocalSearchParams<{ txId: string; from?: string }>();
   const tx = useTransactions().find((x) => x.id === txId);
   const afterPayment = from === 'payment';
@@ -40,7 +43,7 @@ export default function ReceiptScreen() {
     <Screen variant="stack">
       <Stack.Screen
         options={{
-          ...marketplaceHeader,
+          ...headerOptions,
           title: t('payments.receipt.headerTitle'),
           headerBackVisible: !afterPayment,
           gestureEnabled: !afterPayment,
@@ -56,7 +59,7 @@ export default function ReceiptScreen() {
         <>
           <View style={styles.success}>
             <View style={styles.check}>
-              <Icon name="check" size={32} />
+              <Icon name="check" size={32} color="ink" />
             </View>
             <AppText variant="h2" accessibilityRole="header" style={styles.center}>
               {t('payments.receipt.title')}
@@ -102,6 +105,7 @@ export default function ReceiptScreen() {
 }
 
 function Field({ label, value }: { label: string; value: string }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.field}>
       <AppText variant="caption" color="textSecondary">
@@ -112,27 +116,28 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  success: {
-    alignItems: 'center',
-    gap: Space.sm,
-  },
-  check: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: Colors.mint,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Space.sm,
-  },
-  center: {
-    textAlign: 'center',
-  },
-  cardBody: {
-    gap: Space.md,
-  },
-  field: {
-    gap: Space.xs,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    success: {
+      alignItems: 'center',
+      gap: Space.sm,
+    },
+    check: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      backgroundColor: c.mint,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: Space.sm,
+    },
+    center: {
+      textAlign: 'center',
+    },
+    cardBody: {
+      gap: Space.md,
+    },
+    field: {
+      gap: Space.xs,
+    },
+  });

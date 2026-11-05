@@ -1,6 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { RefreshControl, StyleSheet, View } from 'react-native';
 
 import { Notice } from '@/components/notice';
 import { PhotoPicker } from '@/components/photo-picker';
@@ -14,13 +14,16 @@ import { Icon } from '@/components/ui/icon';
 import { TextField } from '@/components/ui/text-field';
 import { useToast } from '@/components/ui/toast';
 import { Space } from '@/constants/theme';
+import { errorMessage } from '@/services/api-client';
 import { useFarmer } from '@/state/farmer-store';
+import { useTheme } from '@/theme';
 import { formatDate, formatDateTime } from '@/utils/format';
 
 export default function ReviewCaseScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { reviewCases, diagnoses, submitEvidence } = useFarmer();
+  const { reviewCases, diagnoses, submitEvidence, refresh, refreshing } = useFarmer();
   const toast = useToast();
+  const { colors } = useTheme();
 
   const [note, setNote] = useState('');
   const [photo, setPhoto] = useState<string | null>(null);
@@ -49,15 +52,24 @@ export default function ReviewCaseScreen() {
       toast('Evidence sent to the extension officer');
       setNote('');
       setPhoto(null);
-    } catch {
-      toast('Could not send the evidence. Please try again.', 'error');
+    } catch (error) {
+      toast(errorMessage(error, 'Could not send the evidence. Please try again.'), 'error');
     } finally {
       setSending(false);
     }
   };
 
   return (
-    <Screen variant="stack">
+    <Screen
+      variant="stack"
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => void refresh().catch(() => {})}
+          tintColor={colors.primaryStrong}
+          colors={[colors.primaryStrong]}
+        />
+      }>
       <Stack.Screen options={{ title: reviewCase.id }} />
 
       <View style={styles.header}>
@@ -93,9 +105,16 @@ export default function ReviewCaseScreen() {
         </Card>
       )}
 
+      {reviewCase.status === 'withdrawn' && (
+        <Notice title="This case was withdrawn" icon="close" tone="gray">
+          The case closed before an officer finished reviewing it.
+        </Notice>
+      )}
+
       {reviewCase.status === 'rejected' && (
         <Notice title="The officer did not agree with the AI result" icon="close" tone="gray">
-          {reviewCase.officerAdvice ?? 'Follow the extension officer’s guidance instead of the AI result.'}
+          {reviewCase.officerAdvice ??
+            'Follow the extension officer’s guidance instead of the AI result.'}
         </Notice>
       )}
 

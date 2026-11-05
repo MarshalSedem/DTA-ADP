@@ -6,11 +6,21 @@ import { AppText } from '@/components/ui/app-text';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { ChipGroup } from '@/components/ui/chip';
 import { Icon, type IconName } from '@/components/ui/icon';
-import { Colors, Layout, Space } from '@/constants/theme';
+import { Layout, Space, type Palette } from '@/constants/theme';
 import { LanguageSwitch } from '@/i18n/language-switch';
 import { useFarmer } from '@/state/farmer-store';
+import { useSession } from '@/state/session';
+import { useStyles, useTheme, type ThemePreference } from '@/theme';
 import type { ConsentPurpose } from '@/types/farmer';
+
+const APPEARANCE = ['System', 'Light', 'Dark'] as const;
+const PREFERENCE: Record<(typeof APPEARANCE)[number], ThemePreference> = {
+  System: 'system',
+  Light: 'light',
+  Dark: 'dark',
+};
 
 const DATA_STATUS_ROWS: { purpose: ConsentPurpose; label: string }[] = [
   { purpose: 'modelImprovement', label: 'Model improvement consent' },
@@ -21,6 +31,10 @@ const DATA_STATUS_ROWS: { purpose: ConsentPurpose; label: string }[] = [
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { profile, consents, pendingReviewCount } = useFarmer();
+  const { signOut } = useSession();
+  const { preference, setPreference } = useTheme();
+  const styles = useStyles(createStyles);
+  const appearance = APPEARANCE.find((a) => PREFERENCE[a] === preference) ?? 'System';
 
   return (
     <ScrollView
@@ -29,7 +43,9 @@ export default function ProfileScreen() {
       {/* Avatar + name */}
       <View style={styles.identity}>
         <View style={styles.avatar} accessibilityElementsHidden importantForAccessibility="no">
-          <AppText variant="h1">{profile.firstName.charAt(0)}</AppText>
+          <AppText variant="h1" color="ink">
+            {profile.firstName.charAt(0)}
+          </AppText>
         </View>
         <AppText variant="h2" accessibilityRole="header">
           {profile.name}
@@ -89,6 +105,32 @@ export default function ProfileScreen() {
           <LanguageSwitch />
         </Card>
       </View>
+
+      {/* Appearance */}
+      <View style={styles.section}>
+        <AppText variant="h4" accessibilityRole="header">
+          Appearance
+        </AppText>
+        <Card style={styles.cardBody}>
+          <ChipGroup
+            label="Theme"
+            options={APPEARANCE}
+            value={appearance}
+            onChange={(choice) => setPreference(PREFERENCE[choice])}
+          />
+          <AppText variant="caption" color="textSecondary">
+            System follows your phone’s light or dark setting.
+          </AppText>
+        </Card>
+      </View>
+
+      <Button
+        label="Sign out"
+        variant="secondary"
+        leadingIcon="personRemove"
+        fullWidth
+        onPress={() => void signOut()}
+      />
     </ScrollView>
   );
 }
@@ -104,6 +146,7 @@ function SettingsRow({
   href: Href;
   detail?: string;
 }) {
+  const styles = useStyles(createStyles);
   return (
     <Pressable
       accessibilityRole="button"
@@ -120,61 +163,62 @@ function SettingsRow({
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  content: {
-    paddingHorizontal: Layout.screenPadding,
-    paddingBottom: Space['2xl'],
-    gap: Space['2xl'],
-    width: '100%',
-    maxWidth: Layout.maxContentWidth,
-    alignSelf: 'center',
-  },
-  flex: {
-    flex: 1,
-  },
-  identity: {
-    alignItems: 'center',
-    gap: Space.xs,
-  },
-  avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: Colors.mint,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Space.sm,
-  },
-  section: {
-    gap: Space.md,
-  },
-  cardBody: {
-    gap: Space.md,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.md,
-    paddingVertical: Space.sm,
-  },
-  divider: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.border,
-  },
-  list: {
-    paddingVertical: Space.xs,
-  },
-  settingsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.base,
-    minHeight: 56,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    content: {
+      paddingHorizontal: Layout.screenPadding,
+      paddingBottom: Space['2xl'],
+      gap: Space['2xl'],
+      width: '100%',
+      maxWidth: Layout.maxContentWidth,
+      alignSelf: 'center',
+    },
+    flex: {
+      flex: 1,
+    },
+    identity: {
+      alignItems: 'center',
+      gap: Space.xs,
+    },
+    avatar: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      backgroundColor: c.mint,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: Space.sm,
+    },
+    section: {
+      gap: Space.md,
+    },
+    cardBody: {
+      gap: Space.md,
+    },
+    statusRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.md,
+      paddingVertical: Space.sm,
+    },
+    divider: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: c.border,
+    },
+    list: {
+      paddingVertical: Space.xs,
+    },
+    settingsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.base,
+      minHeight: 56,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+  });

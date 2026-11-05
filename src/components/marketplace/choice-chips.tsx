@@ -2,7 +2,8 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/app-text';
 import { Icon } from '@/components/ui/icon';
-import { Colors, Radius, Space } from '@/constants/theme';
+import { Radius, Space, type Palette } from '@/constants/theme';
+import { useStyles } from '@/theme';
 
 import { MIN_TAP } from './constants';
 
@@ -19,6 +20,7 @@ type ChoiceChipsProps<T extends string> = {
  * translatable labels.
  */
 export function ChoiceChips<T extends string>({ label, options, value, onChange }: ChoiceChipsProps<T>) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.group}>
       <AppText variant="label">{label}</AppText>
@@ -33,8 +35,10 @@ export function ChoiceChips<T extends string>({ label, options, value, onChange 
               accessibilityLabel={option.label}
               onPress={() => onChange(option.value)}
               style={({ pressed }) => [styles.chip, selected && styles.selected, pressed && styles.pressed]}>
-              {selected && <Icon name="check" size={14} />}
-              <AppText variant="button">{option.label}</AppText>
+              {selected && <Icon name="check" size={14} color="ink" />}
+              <AppText variant="button" color={selected ? 'ink' : 'textPrimary'}>
+                {option.label}
+              </AppText>
             </Pressable>
           );
         })}
@@ -43,28 +47,29 @@ export function ChoiceChips<T extends string>({ label, options, value, onChange 
   );
 }
 
-const styles = StyleSheet.create({
-  group: {
-    gap: Space.sm,
-  },
-  row: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Space.sm,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.xs,
-    minHeight: MIN_TAP,
-    paddingHorizontal: Space.base,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  selected: {
-    backgroundColor: Colors.primaryLight,
-  },
-  pressed: {
-    opacity: 0.8,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    group: {
+      gap: Space.sm,
+    },
+    row: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: Space.sm,
+    },
+    chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.xs,
+      minHeight: MIN_TAP,
+      paddingHorizontal: Space.base,
+      borderRadius: Radius.full,
+      backgroundColor: c.backgroundSecondary,
+    },
+    selected: {
+      backgroundColor: c.primary,
+    },
+    pressed: {
+      opacity: 0.8,
+    },
+  });

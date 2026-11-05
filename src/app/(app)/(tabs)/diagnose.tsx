@@ -14,15 +14,18 @@ import { Icon } from '@/components/ui/icon';
 import { TextField } from '@/components/ui/text-field';
 import { ToggleRow } from '@/components/ui/toggle-row';
 import { useToast } from '@/components/ui/toast';
-import { Colors, Space } from '@/constants/theme';
-import { CROP_TYPES, DISTRICTS } from '@/data/mock-farmer';
+import { CROP_TYPES, DISTRICTS } from '@/constants/farm';
+import { Space, type Palette } from '@/constants/theme';
+import { errorMessage } from '@/services/api-client';
 import { useFarmer } from '@/state/farmer-store';
+import { useStyles } from '@/theme';
 import type { CropType, District } from '@/types/farmer';
 import { formatDate } from '@/utils/format';
 
 export default function DiagnoseScreen() {
   const { profile, modelInfo, diagnoses, submitDiagnosis } = useFarmer();
   const toast = useToast();
+  const styles = useStyles(createStyles);
 
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [cropType, setCropType] = useState<CropType>('Maize');
@@ -36,6 +39,7 @@ export default function DiagnoseScreen() {
   const cropSupported = modelInfo.supportedCrops.includes(cropType);
 
   const analyse = async () => {
+    if (!cropSupported) return;
     if (!diagnosisConsent) {
       toast('Consent is required to analyse the image.', 'error');
       return;
@@ -59,8 +63,9 @@ export default function DiagnoseScreen() {
       setSymptoms('');
       setTrainingConsent(false);
       router.push({ pathname: '/diagnosis/[id]', params: { id } });
-    } catch {
-      toast('Analysis failed. Please try again.', 'error');
+    } catch (error) {
+      // Keep the photo and answers so the farmer can simply try again.
+      toast(errorMessage(error, 'Analysis failed. Please try again.'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -86,10 +91,13 @@ export default function DiagnoseScreen() {
       <Card style={styles.form}>
         <ChipGroup label="Crop type" options={CROP_TYPES} value={cropType} onChange={setCropType} />
         {!cropSupported && (
-          <Notice title={`${cropType} is outside the model's tested crops`} icon="warning" tone="pink">
-            {`${modelInfo.name} ${modelInfo.version} is evaluated for ${modelInfo.supportedCrops
+          <Notice
+            title={`${modelInfo.name} can't check ${cropType.toLowerCase()} yet`}
+            icon="warning"
+            tone="pink">
+            {`${modelInfo.name} ${modelInfo.version} is only evaluated for ${modelInfo.supportedCrops
               .join(', ')
-              .toLowerCase()}. Results for ${cropType.toLowerCase()} may be less reliable, so ask an extension officer to confirm.`}
+              .toLowerCase()}, so it won't analyse ${cropType.toLowerCase()} photos. Ask an extension officer for help with this crop.`}
           </Notice>
         )}
         <ChipGroup label="District" options={DISTRICTS} value={district} onChange={setDistrict} />
@@ -107,7 +115,9 @@ export default function DiagnoseScreen() {
         <ToggleRow
           title="Use this image to provide a diagnosis"
           description={
-            diagnosisConsent ? 'Required for this service.' : 'Required — turn on to analyse the image.'
+            diagnosisConsent
+              ? 'Required for this service.'
+              : 'Required — turn on to analyse the image.'
           }
           value={diagnosisConsent}
           onValueChange={setDiagnosisConsent}
@@ -126,6 +136,7 @@ export default function DiagnoseScreen() {
         variant="accent"
         leadingIcon="lock"
         fullWidth
+        disabled={!cropSupported}
         loading={submitting}
         onPress={analyse}
       />
@@ -159,35 +170,36 @@ export default function DiagnoseScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  form: {
-    gap: Space.xl,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.border,
-  },
-  section: {
-    gap: Space.md,
-  },
-  historyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.md,
-    padding: Space.base,
-  },
-  historyIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.mintLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  historyTitle: {
-    fontSize: 16,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    form: {
+      gap: Space.xl,
+    },
+    divider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: c.border,
+    },
+    section: {
+      gap: Space.md,
+    },
+    historyRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.md,
+      padding: Space.base,
+    },
+    historyIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: c.mintLight,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    historyTitle: {
+      fontSize: 16,
+    },
+  });

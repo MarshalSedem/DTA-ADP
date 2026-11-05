@@ -2,7 +2,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { MIN_TAP } from '@/components/marketplace/constants';
-import { marketplaceHeader } from '@/components/marketplace/header-options';
+import { useMarketplaceHeader } from '@/components/marketplace/header-options';
 import { InfoRow } from '@/components/marketplace/info-row';
 import { OfflineBanner } from '@/components/marketplace/offline-banner';
 import { PrototypeNotice } from '@/components/marketplace/prototype-notice';
@@ -22,6 +22,7 @@ import { formatMoney } from '@/utils/format';
 
 export default function DealerListScreen() {
   const t = useT();
+  const headerOptions = useMarketplaceHeader();
   const params = useLocalSearchParams<{ disease?: string }>();
   const disease = isDiseaseId(params.disease) ? params.disease : undefined;
   const diseaseName = disease ? t(`diseases.${disease}`) : undefined;
@@ -29,7 +30,7 @@ export default function DealerListScreen() {
 
   return (
     <Screen variant="stack">
-      <Stack.Screen options={{ ...marketplaceHeader, title: t('marketplace.list.headerTitle') }} />
+      <Stack.Screen options={{ ...headerOptions, title: t('marketplace.list.headerTitle') }} />
 
       <PrototypeNotice kind="sampleData" />
       <OfflineBanner />

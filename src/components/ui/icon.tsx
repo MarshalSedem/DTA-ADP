@@ -2,7 +2,8 @@ import { SymbolView } from 'expo-symbols';
 import type { ComponentProps } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
-import { Colors, type ColorToken } from '@/constants/theme';
+import { type ColorToken } from '@/constants/theme';
+import { useTheme } from '@/theme';
 
 type SymbolName = ComponentProps<typeof SymbolView>['name'];
 
@@ -53,11 +54,12 @@ type IconProps = {
 };
 
 export function Icon({ name, size = 24, color = 'textPrimary', style }: IconProps) {
+  const { colors } = useTheme();
   return (
     <SymbolView
       name={ICONS[name]}
       size={size}
-      tintColor={Colors[color]}
+      tintColor={colors[color]}
       style={[{ width: size, height: size }, style]}
     />
   );

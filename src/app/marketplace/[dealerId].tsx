@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { MIN_TAP } from '@/components/marketplace/constants';
-import { marketplaceHeader } from '@/components/marketplace/header-options';
+import { useMarketplaceHeader } from '@/components/marketplace/header-options';
 import { InfoRow } from '@/components/marketplace/info-row';
 import { OfflineBanner } from '@/components/marketplace/offline-banner';
 import { PriceBreakdownCard } from '@/components/marketplace/price-breakdown';
@@ -16,14 +16,17 @@ import { AppText } from '@/components/ui/app-text';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, PressableCard } from '@/components/ui/card';
-import { Colors, Space } from '@/constants/theme';
+import { Space, type Palette } from '@/constants/theme';
 import { useT } from '@/i18n';
 import { buildPriceBreakdown, getDealer, isDiseaseId } from '@/services/marketplace-api';
+import { useStyles } from '@/theme';
 import type { DealerProduct, DiseaseId } from '@/types/marketplace';
 import { formatDate, formatMoney } from '@/utils/format';
 
 export default function DealerDetailScreen() {
   const t = useT();
+  const headerOptions = useMarketplaceHeader();
+  const styles = useStyles(createStyles);
   const params = useLocalSearchParams<{ dealerId: string; disease?: string }>();
   const dealer = getDealer(params.dealerId);
   const disease = isDiseaseId(params.disease) ? params.disease : undefined;
@@ -35,7 +38,7 @@ export default function DealerDetailScreen() {
       null,
   );
 
-  const header = <Stack.Screen options={{ ...marketplaceHeader, title: t('marketplace.detail.headerTitle') }} />;
+  const header = <Stack.Screen options={{ ...headerOptions, title: t('marketplace.detail.headerTitle') }} />;
 
   if (!dealer) {
     return (
@@ -174,6 +177,7 @@ function ProductCard({
   onSelect: () => void;
 }) {
   const t = useT();
+  const styles = useStyles(createStyles);
   const price = t('marketplace.detail.unitPrice', {
     price: formatMoney('GHS', product.unitPrice),
     unit: product.unit,
@@ -221,6 +225,7 @@ function ProductCard({
 }
 
 function Field({ label, value }: { label: string; value: string }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.field}>
       <AppText variant="caption" color="textSecondary">
@@ -231,41 +236,42 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  intro: {
-    gap: Space.sm,
-  },
-  section: {
-    gap: Space.md,
-  },
-  cardBody: {
-    gap: Space.md,
-  },
-  field: {
-    gap: 2,
-  },
-  productCard: {
-    gap: Space.sm,
-    minHeight: MIN_TAP,
-  },
-  productSelected: {
-    borderWidth: 2,
-    borderColor: Colors.primary,
-  },
-  productDisabled: {
-    opacity: 0.6,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.md,
-  },
-  badges: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Space.sm,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    intro: {
+      gap: Space.sm,
+    },
+    section: {
+      gap: Space.md,
+    },
+    cardBody: {
+      gap: Space.md,
+    },
+    field: {
+      gap: 2,
+    },
+    productCard: {
+      gap: Space.sm,
+      minHeight: MIN_TAP,
+    },
+    productSelected: {
+      borderWidth: 2,
+      borderColor: c.primaryStrong,
+    },
+    productDisabled: {
+      opacity: 0.6,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.md,
+    },
+    badges: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: Space.sm,
+    },
+  });

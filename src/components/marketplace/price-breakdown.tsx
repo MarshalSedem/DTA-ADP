@@ -3,8 +3,9 @@ import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/ui/app-text';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
-import { Colors, Space } from '@/constants/theme';
+import { Space, type Palette } from '@/constants/theme';
 import { useT } from '@/i18n';
+import { useStyles } from '@/theme';
 import type { PriceBreakdown } from '@/types/marketplace';
 import { formatMoney } from '@/utils/format';
 
@@ -14,6 +15,7 @@ import { formatMoney } from '@/utils/format';
  */
 export function PriceBreakdownCard({ breakdown }: { breakdown: PriceBreakdown }) {
   const t = useT();
+  const styles = useStyles(createStyles);
   const money = (amount: number) => formatMoney(breakdown.currency, amount);
 
   return (
@@ -42,6 +44,7 @@ export function PriceBreakdownCard({ breakdown }: { breakdown: PriceBreakdown })
 }
 
 function Line({ label, amount, emphasis }: { label: string; amount: string; emphasis?: boolean }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.line} accessible accessibilityLabel={`${label}: ${amount}`}>
       <AppText variant={emphasis ? 'cardHeading' : 'body'} style={styles.flex}>
@@ -52,25 +55,26 @@ function Line({ label, amount, emphasis }: { label: string; amount: string; emph
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    gap: Space.md,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.sm,
-  },
-  line: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.md,
-  },
-  flex: {
-    flex: 1,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.border,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    card: {
+      gap: Space.md,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.sm,
+    },
+    line: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.md,
+    },
+    flex: {
+      flex: 1,
+    },
+    divider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: c.border,
+    },
+  });

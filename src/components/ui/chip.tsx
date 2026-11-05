@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Colors, Layout, Radius, Space } from '@/constants/theme';
+import { Layout, Radius, Space, type Palette } from '@/constants/theme';
+import { useStyles } from '@/theme';
 
 import { AppText } from './app-text';
 import { Icon } from './icon';
@@ -13,7 +14,13 @@ type ChipGroupProps<T extends string> = {
 };
 
 /** Single-select pill chips (style guide §6 "Selection Chips"). */
-export function ChipGroup<T extends string>({ label, options, value, onChange }: ChipGroupProps<T>) {
+export function ChipGroup<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: ChipGroupProps<T>) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.group}>
       <AppText variant="label">{label}</AppText>
@@ -32,8 +39,10 @@ export function ChipGroup<T extends string>({ label, options, value, onChange }:
                 selected && styles.selected,
                 pressed && styles.pressed,
               ]}>
-              {selected && <Icon name="check" size={14} />}
-              <AppText variant="button">{option}</AppText>
+              {selected && <Icon name="check" size={14} color="ink" />}
+              <AppText variant="button" color={selected ? 'ink' : 'textPrimary'}>
+                {option}
+              </AppText>
             </Pressable>
           );
         })}
@@ -42,28 +51,29 @@ export function ChipGroup<T extends string>({ label, options, value, onChange }:
   );
 }
 
-const styles = StyleSheet.create({
-  group: {
-    gap: Space.sm,
-  },
-  row: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Space.sm,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.xs,
-    minHeight: Layout.minTouch,
-    paddingHorizontal: Space.base,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  selected: {
-    backgroundColor: Colors.primaryLight,
-  },
-  pressed: {
-    opacity: 0.8,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    group: {
+      gap: Space.sm,
+    },
+    row: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: Space.sm,
+    },
+    chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.xs,
+      minHeight: Layout.minTouch,
+      paddingHorizontal: Space.base,
+      borderRadius: Radius.full,
+      backgroundColor: c.backgroundSecondary,
+    },
+    selected: {
+      backgroundColor: c.primary,
+    },
+    pressed: {
+      opacity: 0.8,
+    },
+  });

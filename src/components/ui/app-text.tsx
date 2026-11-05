@@ -1,6 +1,7 @@
 import { Text, type TextProps } from 'react-native';
 
-import { Colors, Typography, type ColorToken, type TypographyVariant } from '@/constants/theme';
+import { Typography, type ColorToken, type TypographyVariant } from '@/constants/theme';
+import { useTheme } from '@/theme';
 
 export type AppTextProps = TextProps & {
   variant?: TypographyVariant;
@@ -8,5 +9,6 @@ export type AppTextProps = TextProps & {
 };
 
 export function AppText({ variant = 'body', color = 'textPrimary', style, ...rest }: AppTextProps) {
-  return <Text style={[Typography[variant], { color: Colors[color] }, style]} {...rest} />;
+  const { colors } = useTheme();
+  return <Text style={[Typography[variant], { color: colors[color] }, style]} {...rest} />;
 }

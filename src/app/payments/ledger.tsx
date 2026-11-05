@@ -2,7 +2,7 @@ import { router, Stack } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { MIN_TAP } from '@/components/marketplace/constants';
-import { marketplaceHeader } from '@/components/marketplace/header-options';
+import { useMarketplaceHeader } from '@/components/marketplace/header-options';
 import { OfflineBanner } from '@/components/marketplace/offline-banner';
 import { PrototypeNotice } from '@/components/marketplace/prototype-notice';
 import { SyncBanner, SyncStatusBadge } from '@/components/marketplace/sync-status';
@@ -20,12 +20,13 @@ import { formatDateTime, formatMoney } from '@/utils/format';
 /** The farmer's ledger of simulated payments — one action: open a receipt. */
 export default function LedgerScreen() {
   const t = useT();
+  const headerOptions = useMarketplaceHeader();
   const transactions = useTransactions();
   const total = transactions.reduce((sum, tx) => sum + tx.breakdown.total, 0);
 
   return (
     <Screen variant="stack">
-      <Stack.Screen options={{ ...marketplaceHeader, title: t('payments.ledger.headerTitle') }} />
+      <Stack.Screen options={{ ...headerOptions, title: t('payments.ledger.headerTitle') }} />
       <PrototypeNotice kind="noRealMoney" />
       <OfflineBanner />
       <SyncBanner />

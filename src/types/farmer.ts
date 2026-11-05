@@ -81,7 +81,8 @@ export type ModelInfo = {
 
 // ── Human review ─────────────────────────────────────────────────────────────
 
-export type ReviewStatus = 'pending' | 'needsMoreEvidence' | 'confirmed' | 'rejected';
+/** `withdrawn`: closed because the farmer's account was deleted before review finished. */
+export type ReviewStatus = 'pending' | 'needsMoreEvidence' | 'confirmed' | 'rejected' | 'withdrawn';
 
 export type ReviewSource =
   | { type: 'diagnosis'; diagnosisId: string }

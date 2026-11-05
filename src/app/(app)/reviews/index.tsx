@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { RefreshControl, StyleSheet, View } from 'react-native';
 
 import { Notice } from '@/components/notice';
 import { REVIEW_STATUS, ReviewStatusBadge } from '@/components/review-status-badge';
@@ -10,19 +10,31 @@ import { PressableCard } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Space } from '@/constants/theme';
 import { useFarmer } from '@/state/farmer-store';
+import { useTheme } from '@/theme';
 import { formatDate } from '@/utils/format';
 
 export default function ReviewsScreen() {
-  const { reviewCases } = useFarmer();
+  const { reviewCases, refresh, refreshing } = useFarmer();
+  const { colors } = useTheme();
 
   // Cases that need the farmer's input first, then newest first.
   const cases = [...reviewCases].sort((a, b) => {
-    const urgent = Number(b.status === 'needsMoreEvidence') - Number(a.status === 'needsMoreEvidence');
+    const urgent =
+      Number(b.status === 'needsMoreEvidence') - Number(a.status === 'needsMoreEvidence');
     return urgent || b.createdAt.localeCompare(a.createdAt);
   });
 
   return (
-    <Screen variant="stack">
+    <Screen
+      variant="stack"
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => void refresh().catch(() => {})}
+          tintColor={colors.primaryStrong}
+          colors={[colors.primaryStrong]}
+        />
+      }>
       <ScreenIntro
         eyebrow="Human-in-the-loop review"
         title="Your review cases"

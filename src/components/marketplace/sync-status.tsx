@@ -3,9 +3,10 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Notice } from '@/components/notice';
 import { AppText } from '@/components/ui/app-text';
 import { Badge } from '@/components/ui/badge';
-import { Colors, Space } from '@/constants/theme';
+import { Space } from '@/constants/theme';
 import { useT } from '@/i18n';
 import { useSyncing, useTransactions } from '@/state/marketplace-store';
+import { useTheme } from '@/theme';
 import type { SyncStatus } from '@/types/marketplace';
 
 /** "Saved on this phone" / "Synced" — icon + text, never colour alone. */
@@ -21,6 +22,7 @@ export function SyncStatusBadge({ status }: { status: SyncStatus }) {
 /** Visible syncing state: "Syncing…" while uploading, or how many are still saved on the phone. */
 export function SyncBanner() {
   const t = useT();
+  const { colors } = useTheme();
   const syncing = useSyncing();
   const pending = useTransactions().filter((tx) => tx.syncStatus === 'savedOnPhone').length;
 
@@ -28,7 +30,7 @@ export function SyncBanner() {
     return (
       <Notice title={t('payments.sync.syncingTitle')} icon="clock" tone="blue">
         <View style={styles.row}>
-          <ActivityIndicator color={Colors.textPrimary} />
+          <ActivityIndicator color={colors.textPrimary} />
           <AppText variant="body" style={styles.flex}>
             {t('payments.sync.syncingBody')}
           </AppText>

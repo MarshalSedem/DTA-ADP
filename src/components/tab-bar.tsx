@@ -5,7 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/ui/app-text';
 import { Icon, type IconName } from '@/components/ui/icon';
-import { Colors, Layout, Radius, Space } from '@/constants/theme';
+import { Layout, Radius, Space, type Palette } from '@/constants/theme';
+import { useStyles } from '@/theme';
 
 export const FARMER_TABS = [
   { name: 'index', href: '/', label: 'Home', icon: 'home' },
@@ -22,6 +23,7 @@ export const FARMER_TABS = [
 /** Fixed bottom navigation bar (style guide §9). Use as `<TabList asChild>`'s child. */
 export function TabBarContainer(props: TabListProps) {
   const insets = useSafeAreaInsets();
+  const styles = useStyles(createStyles);
   return (
     <View
       {...props}
@@ -35,6 +37,7 @@ type TabButtonProps = TabTriggerSlotProps & { icon: IconName; label: string };
 
 /** A tab with its icon and name. Use as `<TabTrigger asChild>`'s child. */
 export function TabButton({ icon, label, isFocused, ref, ...props }: TabButtonProps) {
+  const styles = useStyles(createStyles);
   return (
     <Pressable
       {...props}
@@ -55,44 +58,45 @@ export function TabButton({ icon, label, isFocused, ref, ...props }: TabButtonPr
   );
 }
 
-const styles = StyleSheet.create({
-  bar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    paddingTop: Space.sm,
-    paddingHorizontal: Space.sm,
-    minHeight: Layout.navigationHeight,
-    borderTopLeftRadius: Radius.xl,
-    borderTopRightRadius: Radius.xl,
-    borderWidth: 1,
-    borderBottomWidth: 0,
-    borderColor: Colors.border,
-  },
-  tab: {
-    flex: 1,
-    minHeight: Layout.minTouch,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Space.xs,
-  },
-  indicator: {
-    width: 56,
-    height: 32,
-    borderRadius: Radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  indicatorActive: {
-    backgroundColor: Colors.navActive,
-  },
-  label: {
-    fontWeight: '500',
-  },
-  labelActive: {
-    fontWeight: '700',
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    bar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: c.surface,
+      paddingTop: Space.sm,
+      paddingHorizontal: Space.sm,
+      minHeight: Layout.navigationHeight,
+      borderTopLeftRadius: Radius.xl,
+      borderTopRightRadius: Radius.xl,
+      borderWidth: 1,
+      borderBottomWidth: 0,
+      borderColor: c.border,
+    },
+    tab: {
+      flex: 1,
+      minHeight: Layout.minTouch,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: Space.xs,
+    },
+    indicator: {
+      width: 56,
+      height: 32,
+      borderRadius: Radius.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    indicatorActive: {
+      backgroundColor: c.navActive,
+    },
+    label: {
+      fontWeight: '500',
+    },
+    labelActive: {
+      fontWeight: '700',
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+  });

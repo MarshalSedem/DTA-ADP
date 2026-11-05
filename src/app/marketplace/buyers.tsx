@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { ChoiceChips } from '@/components/marketplace/choice-chips';
-import { marketplaceHeader } from '@/components/marketplace/header-options';
+import { useMarketplaceHeader } from '@/components/marketplace/header-options';
 import { InfoRow } from '@/components/marketplace/info-row';
 import { OfflineBanner } from '@/components/marketplace/offline-banner';
 import { PrototypeNotice } from '@/components/marketplace/prototype-notice';
@@ -16,15 +16,18 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
-import { Colors, Radius, Space } from '@/constants/theme';
+import { Radius, Space, type Palette } from '@/constants/theme';
 import { useT } from '@/i18n';
 import { cropsWithBuyers, listRankedBuyerOffers } from '@/services/marketplace-api';
+import { useStyles } from '@/theme';
 import type { CropType } from '@/types/farmer';
 import type { RankedBuyerOffer } from '@/types/marketplace';
 import { formatMoney } from '@/utils/format';
 
 export default function BuyerMatchingScreen() {
   const t = useT();
+  const headerOptions = useMarketplaceHeader();
+  const styles = useStyles(createStyles);
   const crops = cropsWithBuyers();
   const [crop, setCrop] = useState<CropType>(crops[0] ?? 'Maize');
   const offers = listRankedBuyerOffers(crop);
@@ -35,7 +38,7 @@ export default function BuyerMatchingScreen() {
 
   return (
     <Screen variant="stack">
-      <Stack.Screen options={{ ...marketplaceHeader, title: t('marketplace.buyers.headerTitle') }} />
+      <Stack.Screen options={{ ...headerOptions, title: t('marketplace.buyers.headerTitle') }} />
       <PrototypeNotice kind="sampleData" />
       <OfflineBanner />
 
@@ -90,6 +93,7 @@ export default function BuyerMatchingScreen() {
 
 function OfferCard({ offer, highestHeadline }: { offer: RankedBuyerOffer; highestHeadline: boolean }) {
   const t = useT();
+  const styles = useStyles(createStyles);
   const money = (amount: number) => formatMoney('GHS', amount);
   const best = offer.rank === 1;
 
@@ -137,6 +141,7 @@ function OfferCard({ offer, highestHeadline }: { offer: RankedBuyerOffer; highes
 }
 
 function Line({ label, amount, emphasis }: { label: string; amount: string; emphasis?: boolean }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.line} accessible accessibilityLabel={`${label}: ${amount}`}>
       <AppText variant={emphasis ? 'cardHeading' : 'body'} style={styles.flex}>
@@ -147,48 +152,49 @@ function Line({ label, amount, emphasis }: { label: string; amount: string; emph
   );
 }
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  list: {
-    gap: Space.md,
-  },
-  offerCard: {
-    gap: Space.md,
-  },
-  bestCard: {
-    borderWidth: 2,
-    borderColor: Colors.mint,
-  },
-  badges: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Space.sm,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.md,
-  },
-  breakdown: {
-    gap: Space.sm,
-    padding: Space.base,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  line: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.md,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.border,
-  },
-  footnote: {
-    flexDirection: 'row',
-    gap: Space.sm,
-    alignItems: 'flex-start',
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    list: {
+      gap: Space.md,
+    },
+    offerCard: {
+      gap: Space.md,
+    },
+    bestCard: {
+      borderWidth: 2,
+      borderColor: c.primaryStrong,
+    },
+    badges: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: Space.sm,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.md,
+    },
+    breakdown: {
+      gap: Space.sm,
+      padding: Space.base,
+      borderRadius: Radius.md,
+      backgroundColor: c.backgroundSecondary,
+    },
+    line: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.md,
+    },
+    divider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: c.border,
+    },
+    footnote: {
+      flexDirection: 'row',
+      gap: Space.sm,
+      alignItems: 'flex-start',
+    },
+  });

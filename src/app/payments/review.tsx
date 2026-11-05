@@ -2,7 +2,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { marketplaceHeader } from '@/components/marketplace/header-options';
+import { useMarketplaceHeader } from '@/components/marketplace/header-options';
 import { OfflineBanner } from '@/components/marketplace/offline-banner';
 import { PriceBreakdownCard } from '@/components/marketplace/price-breakdown';
 import { PrototypeNotice } from '@/components/marketplace/prototype-notice';
@@ -22,13 +22,14 @@ import { formatMoney } from '@/utils/format';
 /** Payment step 1 of 2 — one action: Continue. */
 export default function PaymentReviewScreen() {
   const t = useT();
+  const headerOptions = useMarketplaceHeader();
   const { dealerId, productId } = useLocalSearchParams<{ dealerId: string; productId: string }>();
   const item = getPurchasableItem(dealerId, productId);
   const [quantity, setQuantity] = useState(1);
 
   return (
     <Screen variant="stack">
-      <Stack.Screen options={{ ...marketplaceHeader, title: t('payments.review.headerTitle') }} />
+      <Stack.Screen options={{ ...headerOptions, title: t('payments.review.headerTitle') }} />
       <PrototypeNotice kind="noRealMoney" />
       <OfflineBanner />
 
