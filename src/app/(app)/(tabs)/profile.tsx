@@ -2,6 +2,7 @@ import { router, type Href } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Notice } from '@/components/notice';
 import { AppText } from '@/components/ui/app-text';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { ChipGroup } from '@/components/ui/chip';
 import { Icon, type IconName } from '@/components/ui/icon';
 import { Layout, Space, type Palette } from '@/constants/theme';
 import { LanguageSwitch } from '@/i18n/language-switch';
+import { DEMO_MODE } from '@/services/demo-mode';
 import { useFarmer } from '@/state/farmer-store';
 import { useSession } from '@/state/session';
 import { useStyles, useTheme, type ThemePreference } from '@/theme';
@@ -123,6 +125,12 @@ export default function ProfileScreen() {
           </AppText>
         </Card>
       </View>
+
+      {DEMO_MODE && (
+        <Notice title="Demo mode" icon="info" tone="blue">
+          Sign-in is off and everything here is sample data. Development builds only.
+        </Notice>
+      )}
 
       <Button
         label="Sign out"

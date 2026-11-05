@@ -1,8 +1,7 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { MIN_TAP } from '@/components/marketplace/constants';
-import { useMarketplaceHeader } from '@/components/marketplace/header-options';
 import { InfoRow } from '@/components/marketplace/info-row';
 import { OfflineBanner } from '@/components/marketplace/offline-banner';
 import { PrototypeNotice } from '@/components/marketplace/prototype-notice';
@@ -20,18 +19,16 @@ import { useT } from '@/i18n';
 import { isDiseaseId, listVerifiedDealers, productsForDisease } from '@/services/marketplace-api';
 import { formatMoney } from '@/utils/format';
 
+/** Market tab — verified dealers (opened directly, or filtered from a diagnosis). */
 export default function DealerListScreen() {
   const t = useT();
-  const headerOptions = useMarketplaceHeader();
   const params = useLocalSearchParams<{ disease?: string }>();
   const disease = isDiseaseId(params.disease) ? params.disease : undefined;
   const diseaseName = disease ? t(`diseases.${disease}`) : undefined;
   const dealers = listVerifiedDealers({ disease });
 
   return (
-    <Screen variant="stack">
-      <Stack.Screen options={{ ...headerOptions, title: t('marketplace.list.headerTitle') }} />
-
+    <Screen variant="tab">
       <PrototypeNotice kind="sampleData" />
       <OfflineBanner />
 
@@ -129,19 +126,6 @@ export default function DealerListScreen() {
         <View style={styles.flex}>
           <AppText variant="cardHeading">{t('marketplace.list.buyersEntryTitle')}</AppText>
           <AppText variant="body">{t('marketplace.list.buyersEntryBody')}</AppText>
-        </View>
-        <Icon name="chevronRight" size={18} />
-      </PressableCard>
-
-      <PressableCard
-        tone="gray"
-        style={styles.buyersEntry}
-        accessibilityLabel={`${t('marketplace.list.ledgerEntryTitle')}. ${t('marketplace.list.ledgerEntryBody')}`}
-        onPress={() => router.push('/payments/ledger')}>
-        <Icon name="document" size={24} />
-        <View style={styles.flex}>
-          <AppText variant="cardHeading">{t('marketplace.list.ledgerEntryTitle')}</AppText>
-          <AppText variant="body">{t('marketplace.list.ledgerEntryBody')}</AppText>
         </View>
         <Icon name="chevronRight" size={18} />
       </PressableCard>

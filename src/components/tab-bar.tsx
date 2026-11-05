@@ -11,6 +11,8 @@ import { useStyles } from '@/theme';
 export const FARMER_TABS = [
   { name: 'index', href: '/', label: 'Home', icon: 'home' },
   { name: 'diagnose', href: '/diagnose', label: 'Diagnose', icon: 'diagnose' },
+  { name: 'marketplace', href: '/marketplace', label: 'Market', icon: 'store' },
+  { name: 'payments', href: '/payments', label: 'Payments', icon: 'wallet' },
   { name: 'profile', href: '/profile', label: 'Profile', icon: 'profile' },
 ] as const satisfies readonly { name: string; href: string; label: string; icon: IconName }[];
 

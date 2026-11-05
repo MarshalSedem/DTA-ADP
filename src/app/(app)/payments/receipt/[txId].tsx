@@ -27,13 +27,15 @@ export default function ReceiptScreen() {
   const tx = useTransactions().find((x) => x.id === txId);
   const afterPayment = from === 'payment';
 
-  const done = () => (afterPayment ? router.dismissTo('/marketplace') : router.back());
+  // After paying, return to the Payments tab (navigate unwinds the stack back to the tabs),
+  // where the new transaction and its sync status are listed.
+  const done = () => (afterPayment ? router.navigate('/payments') : router.back());
 
   // Straight after paying, "back" must not reopen the payment screens.
   useEffect(() => {
     if (!afterPayment) return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      router.dismissTo('/marketplace');
+      router.navigate('/payments');
       return true;
     });
     return () => sub.remove();

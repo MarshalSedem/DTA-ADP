@@ -5,7 +5,9 @@
 import { createContext, use, useEffect, useState, type ReactNode } from 'react';
 
 import { ApiError, session as tokenStore } from '@/services/api-client';
+import { DEMO_MODE } from '@/services/demo-mode';
 import { fetchMe, signIn as apiSignIn, toProfile, type ApiUser } from '@/services/farmer-api';
+import { DEMO_PROFILE } from '@/services/farmer-api-demo';
 import type { FarmerProfile } from '@/types/farmer';
 
 type SessionState = {
@@ -13,6 +15,8 @@ type SessionState = {
   profile: FarmerProfile | null;
   signIn: (phone: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  /** Demo mode only (development builds): enter the app as the sample farmer, no sign-in. */
+  continueInDemo: (() => void) | null;
 };
 
 const SessionContext = createContext<SessionState | null>(null);
@@ -20,8 +24,9 @@ const SessionContext = createContext<SessionState | null>(null);
 const STAFF_MESSAGE = 'This app is for farmers. Staff should use the AgriTrust web dashboard.';
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [status, setStatus] = useState<SessionState['status']>('loading');
-  const [profile, setProfile] = useState<FarmerProfile | null>(null);
+  // Demo mode starts signed in as the sample farmer — no token, no backend.
+  const [status, setStatus] = useState<SessionState['status']>(DEMO_MODE ? 'signedIn' : 'loading');
+  const [profile, setProfile] = useState<FarmerProfile | null>(DEMO_MODE ? DEMO_PROFILE : null);
 
   const signOut = async () => {
     await tokenStore.clear();
@@ -35,6 +40,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    if (DEMO_MODE) return;
     tokenStore.setUnauthorizedHandler(() => void signOut());
     let cancelled = false;
     (async () => {
@@ -66,7 +72,18 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     accept(user);
   };
 
-  return <SessionContext value={{ status, profile, signIn, signOut }}>{children}</SessionContext>;
+  const continueInDemo = DEMO_MODE
+    ? () => {
+        setProfile(DEMO_PROFILE);
+        setStatus('signedIn');
+      }
+    : null;
+
+  return (
+    <SessionContext value={{ status, profile, signIn, signOut, continueInDemo }}>
+      {children}
+    </SessionContext>
+  );
 }
 
 export function useSession() {

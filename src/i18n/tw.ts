@@ -43,10 +43,8 @@ export const tw: Dictionary = {
     Cocoa: 'Kookoo', // needs review
   },
   marketplace: {
-    homeEntry: 'Hwehwɛ adetɔnfoɔ a wɔasɔ wɔn ahwɛ', // needs review
     diagnosisLink: 'Hwehwɛ adetɔnfoɔ ma {disease}', // needs review
     list: {
-      headerTitle: 'Gua', // needs review
       eyebrow: 'Gua', // needs review
       title: 'Adetɔnfoɔ a wɔasɔ wɔn ahwɛ', // needs review
       description: 'Wɔasɔ adetɔnfoɔ a wɔwɔ ha nyinaa ahwɛ. Toto akatua a wɔde nneɛma bɛba ne berɛ a ɛbɛgye ho ansa na woatɔ.', // needs review
@@ -73,8 +71,6 @@ export const tw: Dictionary = {
       openDealer: 'Bue {name}', // needs review
       buyersEntryTitle: 'Wopɛ sɛ wotɔn wo nnɔbaeɛ?', // needs review
       buyersEntryBody: 'Hwɛ adetɔfoɔ a wɔasɔ wɔn ahwɛ, sɛdeɛ sika a ɛbɛka wo nsa wɔ akwantuo akatua akyi te.', // needs review
-      ledgerEntryTitle: 'Me sika ho nsɛm', // needs review
-      ledgerEntryBody: 'Sika tua nhwɛsoɔ ne tua nkrataa', // needs review
     },
     buyers: {
       headerTitle: 'Adetɔfoɔ', // needs review
@@ -204,7 +200,6 @@ export const tw: Dictionary = {
       notFoundBody: 'Tua krataa yi nni fon yi so.', // needs review
     },
     ledger: {
-      headerTitle: 'Me sika ho nsɛm', // needs review
       eyebrow: 'Sika tua nhwɛsoɔ', // needs review
       title: 'Me sika ho nsɛm', // needs review
       description: 'Sika tua nhwɛsoɔ biara a woyɛ no wɔ ha. Sika ankasa biara nni mu.', // needs review
@@ -216,6 +211,60 @@ export const tw: Dictionary = {
       emptyBody: 'Sika tua nhwɛsoɔ a wobɛyɛ afi adetɔnni krataa so bɛba ha.', // needs review
       openReceipt: 'Bue tua krataa {number}', // needs review
       rowMeta: '{number} · {date}', // needs review
+    },
+  },
+  weather: {
+    cardTitle: 'Ewiem tebea nnawɔtwe yi', // needs review
+    forDistrict: 'Ewiem tebea wɔ {district}', // needs review
+    today: 'Ɛnnɛ', // needs review
+    tomorrow: 'Ɔkyena', // needs review
+    weekdays: {
+      sun: 'Kwasiada', // needs review
+      mon: 'Dwoada', // needs review
+      tue: 'Benada', // needs review
+      wed: 'Wukuada', // needs review
+      thu: 'Yawoada', // needs review
+      fri: 'Fiada', // needs review
+      sat: 'Memeneda', // needs review
+    },
+    tempRange: '{max}° / {min}°', // needs review
+    nowTemp: '{temp}°', // needs review
+    rainChance: 'Nsuo bɛtɔ: {percent}%', // needs review
+    rainAmount: 'Nsuo {mm} mm', // needs review
+    rainBoth: 'Nsuo bɛtɔ: {percent}% · {mm} mm', // needs review
+    todaySummary: '{range} · {rain}', // needs review
+    chanceShort: '{percent}%', // needs review
+    noRainData: 'Nsuo ho nsɛm nni hɔ', // needs review
+    viewForecast: 'Hwɛ nnafua 7 ewiem tebea', // needs review
+    updated: 'Yɛyɛɛ no foforɔ {time}', // needs review
+    offlineCached: 'Wonni intanɛt. Yɛrekyerɛ ewiem tebea a ɛfiri {time}.', // needs review
+    staleCached: 'Yɛantumi anyɛ no foforɔ. Yɛrekyerɛ ewiem tebea a ɛfiri {time}.', // needs review
+    loading: 'Yɛrenya ewiem tebea…', // needs review
+    errorTitle: 'Yɛantumi annya ewiem tebea', // needs review
+    errorBody: 'Hwɛ wo intanɛt na san sɔ hwɛ.', // needs review
+    retry: 'San sɔ hwɛ', // needs review
+    consentTitle: 'Hwɛ ewiem tebea ma wo afuo', // needs review
+    consentBody: 'Sɛ yɛbɛkyerɛ ewiem tebea a, AgriTrust de wo mpɔtam beaeɛ ({district}) bɛmena Open-Meteo, ewiem tebea dwumadie a wontua hwee. Yɛremfa wo din ne wo fon nɔma mma da.', // needs review
+    consentAccept: 'Kyerɛ ewiem tebea', // needs review
+    turnOff: 'Dum ewiem tebea', // needs review
+    attribution: 'Weather data by Open-Meteo.com', // needs review (licence credit; keep in English)
+    pageHeader: 'Ewiem tebea', // needs review
+    pageEyebrow: 'Ewiem tebea nkɔmhyɛ', // needs review
+    pageTitle: 'Nnafua 7 ewiem tebea', // needs review
+    pageDescription: 'Ewiem tebea ma {district}. Ewiem tebea betumi asesa, enti hwɛ bio ansa na woadua, wopete aduro anaa wotwa nnɔbaeɛ.', // needs review
+    privacyNote: 'Wo mpɔtam beaeɛ nko ara na yɛde mena Open-Meteo. Wobɛtumi adum yei berɛ biara.', // needs review
+    conditions: {
+      clear: 'Ewiem ho tew', // needs review
+      mainlyClear: 'Ewiem ho tew kakra', // needs review
+      partlyCloudy: 'Mununkum kakra', // needs review
+      cloudy: 'Mununkum', // needs review
+      fog: 'Bɔ', // needs review
+      drizzle: 'Nsuo nketewa', // needs review
+      rain: 'Nsuo', // needs review
+      heavyRain: 'Nsuo kɛseɛ', // needs review
+      showers: 'Nsuo a ɛtɔ ntɛm', // needs review
+      thunderstorm: 'Aprannaa ne nsuo', // needs review
+      other: 'Ewiem tebea ahodoɔ', // needs review
     },
   },
 };

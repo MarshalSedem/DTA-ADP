@@ -163,7 +163,9 @@ export default function DiagnosisResultScreen() {
             variant="secondary"
             leadingIcon="market"
             fullWidth
-            onPress={() => router.push({ pathname: '/marketplace', params: { disease: dealerDisease } })}
+            onPress={() =>
+              router.navigate({ pathname: '/marketplace', params: { disease: dealerDisease } })
+            }
           />
         )}
 

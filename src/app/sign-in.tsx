@@ -15,7 +15,7 @@ import { useStyles } from '@/theme';
 
 /** Farmers sign in with the phone number registered to their account. */
 export default function SignInScreen() {
-  const { signIn } = useSession();
+  const { signIn, continueInDemo } = useSession();
   const insets = useSafeAreaInsets();
   const styles = useStyles(createStyles);
 
@@ -61,44 +61,61 @@ export default function SignInScreen() {
           </AppText>
         </Card>
 
-        <Card style={styles.form}>
-          <TextField
-            label="Phone number"
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="0244000000"
-            keyboardType="phone-pad"
-            textContentType="telephoneNumber"
-            autoComplete="tel"
-            returnKeyType="next"
-          />
-          <TextField
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            textContentType="password"
-            autoComplete="current-password"
-            returnKeyType="go"
-            onSubmitEditing={submit}
-          />
-          {error && (
-            <Notice title="Couldn't sign in" icon="warning" tone="pink">
-              {error}
+        {continueInDemo ? (
+          // Demo mode (development builds only): no sign-in, built-in sample data.
+          <Card style={styles.form}>
+            <Notice title="Demo mode" icon="info" tone="blue">
+              Sign-in is turned off in this development build. You will use sample data for Ama
+              K. — nothing is sent to the AgriTrust server.
             </Notice>
-          )}
-          <Button
-            label="Sign in"
-            variant="accent"
-            leadingIcon="lock"
-            fullWidth
-            disabled={!canSubmit}
-            loading={busy}
-            onPress={submit}
-          />
-        </Card>
+            <Button
+              label="Continue in demo mode"
+              variant="accent"
+              trailingIcon="arrowRight"
+              fullWidth
+              onPress={continueInDemo}
+            />
+          </Card>
+        ) : (
+          <Card style={styles.form}>
+            <TextField
+              label="Phone number"
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="0244000000"
+              keyboardType="phone-pad"
+              textContentType="telephoneNumber"
+              autoComplete="tel"
+              returnKeyType="next"
+            />
+            <TextField
+              label="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              textContentType="password"
+              autoComplete="current-password"
+              returnKeyType="go"
+              onSubmitEditing={submit}
+            />
+            {error && (
+              <Notice title="Couldn't sign in" icon="warning" tone="pink">
+                {error}
+              </Notice>
+            )}
+            <Button
+              label="Sign in"
+              variant="accent"
+              leadingIcon="lock"
+              fullWidth
+              disabled={!canSubmit}
+              loading={busy}
+              onPress={submit}
+            />
+          </Card>
+        )}
 
-        {__DEV__ && (
+        {__DEV__ && !continueInDemo && (
           <Notice title="Demo account" icon="info" tone="blue">
             Phone 0244000001 (Ama K.) or 0244000002 (Kojo A.), password agritrust123.
           </Notice>

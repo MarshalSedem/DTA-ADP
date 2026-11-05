@@ -37,6 +37,22 @@ const ICONS = {
   warning: { ios: 'exclamationmark.triangle', android: 'warning', web: 'warning' },
   clock: { ios: 'clock', android: 'schedule', web: 'schedule' },
   document: { ios: 'doc.text', android: 'description', web: 'description' },
+  store: { ios: 'storefront', android: 'storefront', web: 'storefront' },
+  // Weather
+  sun: { ios: 'sun.max', android: 'sunny', web: 'sunny' },
+  partlyCloudy: { ios: 'cloud.sun', android: 'partly_cloudy_day', web: 'partly_cloudy_day' },
+  cloud: { ios: 'cloud', android: 'cloud', web: 'cloud' },
+  fog: { ios: 'cloud.fog', android: 'foggy', web: 'foggy' },
+  drizzle: { ios: 'cloud.drizzle', android: 'rainy', web: 'rainy' },
+  rain: { ios: 'cloud.rain', android: 'rainy', web: 'rainy' },
+  heavyRain: { ios: 'cloud.heavyrain', android: 'rainy', web: 'rainy' },
+  thunderstorm: { ios: 'cloud.bolt.rain', android: 'thunderstorm', web: 'thunderstorm' },
+  raindrop: { ios: 'drop', android: 'water_drop', web: 'water_drop' },
+  wallet: {
+    ios: 'creditcard',
+    android: 'account_balance_wallet',
+    web: 'account_balance_wallet',
+  },
   personRemove: {
     ios: 'person.crop.circle.badge.xmark',
     android: 'person_remove',

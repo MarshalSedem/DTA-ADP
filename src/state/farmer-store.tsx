@@ -9,7 +9,8 @@
 import { createContext, use, useCallback, useEffect, useState, type ReactNode } from 'react';
 
 import { errorMessage } from '@/services/api-client';
-import * as api from '@/services/farmer-api';
+// Real API, or built-in sample data in demo mode (development builds only).
+import * as api from '@/services/farmer-data';
 import { useSession } from '@/state/session';
 import type {
   AccountDeletionStatus,
