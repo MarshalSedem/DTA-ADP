@@ -1,19 +1,21 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Colors, Radius, Space, type ColorToken } from '@/constants/theme';
+import { Radius, Space, type ColorToken, type Palette } from '@/constants/theme';
+import { useTheme } from '@/theme';
 
 import { AppText } from './app-text';
 import { Icon, type IconName } from './icon';
 
 export type BadgeTone = 'mint' | 'blue' | 'pink' | 'gray' | 'dark';
 
-const TONES: Record<BadgeTone, { bg: string; fg: ColorToken }> = {
-  mint: { bg: Colors.mint, fg: 'textPrimary' },
-  blue: { bg: Colors.primaryLight, fg: 'textPrimary' },
-  pink: { bg: Colors.pink, fg: 'textPrimary' },
-  gray: { bg: Colors.backgroundSecondary, fg: 'textPrimary' },
-  dark: { bg: Colors.surfaceDarkSecondary, fg: 'textInverse' },
-};
+/** Pastel fills keep dark ink text in both themes; neutral tones follow the theme. */
+const tones = (c: Palette): Record<BadgeTone, { bg: string; fg: ColorToken }> => ({
+  mint: { bg: c.mint, fg: 'ink' },
+  blue: { bg: c.blue, fg: 'ink' },
+  pink: { bg: c.pink, fg: 'ink' },
+  gray: { bg: c.backgroundSecondary, fg: 'textPrimary' },
+  dark: { bg: c.surfaceDarkSecondary, fg: 'textInverse' },
+});
 
 type BadgeProps = {
   label: string;
@@ -23,7 +25,8 @@ type BadgeProps = {
 
 /** Small pill label. Always carries text so state never relies on colour alone. */
 export function Badge({ label, tone = 'gray', icon }: BadgeProps) {
-  const { bg, fg } = TONES[tone];
+  const { colors } = useTheme();
+  const { bg, fg } = tones(colors)[tone];
   return (
     <View style={[styles.badge, { backgroundColor: bg }]}>
       {icon && <Icon name={icon} size={12} color={fg} />}

@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Switch, View } from 'react-native';
 
-import { Colors, Space } from '@/constants/theme';
+import { Space } from '@/constants/theme';
+import { useTheme } from '@/theme';
 
 import { AppText } from './app-text';
 import { Badge } from './badge';
@@ -16,6 +17,8 @@ type ToggleRowProps = {
 
 /** A labelled switch. The whole row is tappable. */
 export function ToggleRow({ title, description, value, onValueChange, locked }: ToggleRowProps) {
+  const { colors, scheme } = useTheme();
+  const offTrack = scheme === 'dark' ? colors.surfaceDarkSecondary : colors.border;
   const toggle = () => {
     if (!locked) onValueChange?.(!value);
   };
@@ -43,9 +46,9 @@ export function ToggleRow({ title, description, value, onValueChange, locked }: 
         value={value}
         onValueChange={toggle}
         disabled={locked}
-        trackColor={{ false: Colors.border, true: Colors.primary }}
-        thumbColor={Colors.surface}
-        ios_backgroundColor={Colors.border}
+        trackColor={{ false: offTrack, true: colors.primary }}
+        thumbColor={colors.white}
+        ios_backgroundColor={offTrack}
         importantForAccessibility="no-hide-descendants"
         accessibilityElementsHidden
       />

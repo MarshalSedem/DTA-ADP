@@ -1,16 +1,27 @@
 /**
- * AgriTrust design tokens — derived from `style-guide.md`.
- * Use these instead of hard-coded values in components.
+ * AgriTrust design tokens — derived from `style-guide.md`, with the mint primary and dark
+ * theme used by the web dashboard. Use these instead of hard-coded values in components.
  */
 import '@/global.css';
 
 import { Platform, type TextStyle } from 'react-native';
 
-export const Colors = {
+/**
+ * Colour palettes. Components never import a palette directly — they read the active one
+ * with `useTheme()` / `useStyles()` from `@/theme`, so light and dark stay in sync.
+ *
+ * Primary is mint #83F5CC (the guide's Mint Green). `primaryLight` keeps the guide's
+ * primary→light ratio (cyan #49CBEB → #98E2F4); `navActive` is the guide's Light Mint.
+ * Mint is only 1.3:1 on white, so lines that must be seen on light surfaces (focus borders,
+ * bullet dots, progress fills) use `primaryStrong`. Text on any pastel fill uses `ink`.
+ * Values match the web dashboard (DTA-ADP-DASHBOARD/frontend/src/styles/tokens.css).
+ */
+export const LightColors = {
   // Primary
-  primary: '#49CBEB',
-  primaryLight: '#98E2F4',
-  navActive: '#CDEFF6',
+  primary: '#83F5CC',
+  primaryLight: '#BAF9E2',
+  primaryStrong: '#178A62',
+  navActive: '#DDFFF1',
 
   // Secondary / pastel
   mint: '#83F5CC',
@@ -18,6 +29,10 @@ export const Colors = {
   mintLight: '#DDFFF1',
   pinkLight: '#FFE7F6',
   showcase: '#CDE5EA',
+  /** Soft blue stays the informational accent so "info" never looks like "success". */
+  blue: '#98E2F4',
+  blueFaint: '#CDEFF6',
+  featuredPastel: '#98E2F4',
 
   // Backgrounds & surfaces
   background: '#FAFAFA',
@@ -25,20 +40,63 @@ export const Colors = {
   surface: '#FFFFFF',
   surfaceDark: '#1C1C1C',
   surfaceDarkSecondary: '#323232',
+  backdrop: 'rgba(28, 28, 28, 0.45)',
 
   // Text
   textPrimary: '#1C1C1C',
-  textSecondary: '#888888',
+  /** #6B6B6B instead of the guide's #888888, which is below WCAG AA on white. */
+  textSecondary: '#6B6B6B',
   textMuted: '#A5A5A5',
   textInverse: '#FFFFFF',
-  /** Secondary text on dark surfaces (not in the guide; keeps AA contrast on #1C1C1C). */
+  /** Secondary text on dark surfaces (keeps AA contrast on #1C1C1C). */
   textInverseSecondary: '#C9C9C9',
+
+  /** Text and icons on pastel fills — the same in both themes. */
+  ink: '#1C1C1C',
+  white: '#FFFFFF',
 
   // Borders
   border: '#EAEAEA',
-} as const;
+};
 
-export type ColorToken = keyof typeof Colors;
+export type Palette = Record<keyof typeof LightColors, string>;
+export type ColorToken = keyof Palette;
+
+/** Dark theme (guide §13): charcoal surfaces, near-white text, pastel accents as fills. */
+export const DarkColors: Palette = {
+  primary: '#83F5CC',
+  primaryLight: '#BAF9E2',
+  primaryStrong: '#83F5CC',
+  navActive: '#163128',
+
+  mint: '#83F5CC',
+  pink: '#FDB0E3',
+  mintLight: '#163128',
+  pinkLight: '#331F2B',
+  showcase: '#1E2A2D',
+  blue: '#98E2F4',
+  blueFaint: '#13303A',
+  featuredPastel: '#173A45',
+
+  background: '#121212',
+  backgroundSecondary: '#262626',
+  surface: '#1C1C1C',
+  /** Sits above cards so featured dark cards still stand out. */
+  surfaceDark: '#2A2A2A',
+  surfaceDarkSecondary: '#383838',
+  backdrop: 'rgba(0, 0, 0, 0.65)',
+
+  textPrimary: '#F2F2F2',
+  textSecondary: '#BDBDBD',
+  textMuted: '#8A8A8A',
+  textInverse: '#FFFFFF',
+  textInverseSecondary: '#C9C9C9',
+
+  ink: '#1C1C1C',
+  white: '#FFFFFF',
+
+  border: '#2E2E2E',
+};
 
 export const Space = {
   xs: 4,
@@ -80,7 +138,11 @@ export const Layout = {
  */
 const fontFamily = Platform.select({ web: 'var(--font-primary)', default: undefined });
 
-const type = (fontSize: number, lineHeight: number, fontWeight: TextStyle['fontWeight']): TextStyle => ({
+const type = (
+  fontSize: number,
+  lineHeight: number,
+  fontWeight: TextStyle['fontWeight'],
+): TextStyle => ({
   fontFamily,
   fontSize,
   lineHeight,
@@ -106,7 +168,7 @@ export type TypographyVariant = keyof typeof Typography;
 
 /**
  * No shadows anywhere in the app (product decision). Separate surfaces with
- * background contrast, or a 1px `Colors.border` line on white surfaces.
+ * background contrast, or a 1px `border` line on white surfaces.
  */
 
 export const Duration = {

@@ -16,9 +16,12 @@ import { AppText } from '@/components/ui/app-text';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
-import { Colors, Layout, Radius, Space, Typography } from '@/constants/theme';
+import { Layout, Radius, Space, Typography, type Palette } from '@/constants/theme';
+import { useToast } from '@/components/ui/toast';
 import { useReviewRequest } from '@/hooks/use-review-request';
+import { errorMessage } from '@/services/api-client';
 import { useFarmer } from '@/state/farmer-store';
+import { useStyles, useTheme } from '@/theme';
 import type { AdvisoryAnswer, ChatMessage } from '@/types/farmer';
 
 export default function AdviserScreen() {
@@ -29,16 +32,27 @@ export default function AdviserScreen() {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const [question, setQuestion] = useState('');
+  const toast = useToast();
+  const { colors, scheme } = useTheme();
+  const styles = useStyles(createStyles);
 
+  // Pin the home screen's recommendation only if it isn't already in the saved conversation.
   const pinned =
-    recommendationId && latestRecommendation?.id === recommendationId ? latestRecommendation : null;
+    recommendationId &&
+    latestRecommendation?.id === recommendationId &&
+    !chatMessages.some((m) => m.id === recommendationId)
+      ? latestRecommendation
+      : null;
   const canSend = question.trim().length > 0 && !adviserBusy;
 
   const send = () => {
     const q = question.trim();
     if (!q || adviserBusy) return;
     setQuestion('');
-    void askAdviser(q);
+    askAdviser(q).catch((error) => {
+      setQuestion(q);
+      toast(errorMessage(error, 'The adviser could not answer. Please try again.'), 'error');
+    });
   };
 
   /** The farmer's question that an answer replied to — used as the case summary. */
@@ -104,7 +118,7 @@ export default function AdviserScreen() {
         {adviserBusy && (
           <View style={styles.assistantRow} accessibilityLiveRegion="polite">
             <View style={[styles.assistantBubble, styles.thinking]}>
-              <ActivityIndicator color={Colors.textPrimary} />
+              <ActivityIndicator color={colors.textPrimary} />
               <AppText variant="body" color="textSecondary">
                 Thinking…
               </AppText>
@@ -118,7 +132,8 @@ export default function AdviserScreen() {
           value={question}
           onChangeText={setQuestion}
           placeholder="Example: Should I plant maize this week?"
-          placeholderTextColor={Colors.textMuted}
+          placeholderTextColor={colors.textMuted}
+          keyboardAppearance={scheme}
           accessibilityLabel="Your question"
           multiline
           submitBehavior="submit"
@@ -137,7 +152,7 @@ export default function AdviserScreen() {
             !canSend && styles.sendDisabled,
             pressed && styles.sendPressed,
           ]}>
-          <Icon name="send" size={22} />
+          <Icon name="send" size={22} color="ink" />
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -153,12 +168,15 @@ function MessageBubble({
   reviewBusy: boolean;
   onRequestReview: () => void;
 }) {
+  const styles = useStyles(createStyles);
   if (message.role === 'user') {
     return (
       <View style={styles.userRow}>
         <View style={styles.userBubble}>
           {/* Plain <Text> — user input is never interpreted as markup. */}
-          <AppText variant="bodyLarge">{message.text}</AppText>
+          <AppText variant="bodyLarge" color="ink">
+            {message.text}
+          </AppText>
         </View>
       </View>
     );
@@ -194,6 +212,7 @@ function MessageBubble({
 
 /** Advice / Why / Uncertainty — the fixed structure of every AI answer. */
 function AnswerSections({ answer }: { answer: AdvisoryAnswer }) {
+  const styles = useStyles(createStyles);
   const parts: [string, string][] = [
     ['Advice', answer.advice],
     ['Why', answer.why],
@@ -215,103 +234,104 @@ function AnswerSections({ answer }: { answer: AdvisoryAnswer }) {
 
 const truncate = (s: string, max: number) => (s.length > max ? `${s.slice(0, max - 1)}…` : s);
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  flex: {
-    flex: 1,
-  },
-  thread: {
-    paddingHorizontal: Layout.screenPadding,
-    paddingVertical: Space.base,
-    gap: Space.md,
-    width: '100%',
-    maxWidth: Layout.maxContentWidth,
-    alignSelf: 'center',
-  },
-  privacyNote: {
-    flexDirection: 'row',
-    gap: Space.sm,
-    alignItems: 'flex-start',
-    marginBottom: Space.xs,
-  },
-  assistantRow: {
-    alignItems: 'flex-start',
-  },
-  assistantBubble: {
-    maxWidth: '90%',
-    gap: Space.md,
-    padding: Space.base,
-    borderRadius: Radius.lg,
-    borderTopLeftRadius: Radius.xs,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  pinned: {
-    backgroundColor: Colors.mintLight,
-  },
-  thinking: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.sm,
-  },
-  userRow: {
-    alignItems: 'flex-end',
-  },
-  userBubble: {
-    maxWidth: '85%',
-    paddingHorizontal: Space.base,
-    paddingVertical: Space.md,
-    borderRadius: Radius.lg,
-    borderTopRightRadius: Radius.xs,
-    backgroundColor: Colors.primaryLight,
-  },
-  sections: {
-    gap: Space.md,
-  },
-  part: {
-    gap: Space.xs,
-  },
-  composer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: Space.sm,
-    paddingHorizontal: Layout.screenPadding,
-    paddingTop: Space.md,
-    backgroundColor: Colors.surface,
-    borderTopLeftRadius: Radius.xl,
-    borderTopRightRadius: Radius.xl,
-    borderWidth: 1,
-    borderBottomWidth: 0,
-    borderColor: Colors.border,
-  },
-  input: {
-    ...Typography.bodyLarge,
-    flex: 1,
-    minHeight: Layout.buttonHeight,
-    maxHeight: 120,
-    paddingHorizontal: Space.lg,
-    paddingTop: 14,
-    paddingBottom: 14,
-    borderRadius: 26,
-    backgroundColor: Colors.backgroundSecondary,
-    color: Colors.textPrimary,
-  },
-  send: {
-    width: Layout.buttonHeight,
-    height: Layout.buttonHeight,
-    borderRadius: Layout.buttonHeight / 2,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sendDisabled: {
-    opacity: 0.4,
-  },
-  sendPressed: {
-    transform: [{ scale: 0.95 }],
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    flex: {
+      flex: 1,
+    },
+    thread: {
+      paddingHorizontal: Layout.screenPadding,
+      paddingVertical: Space.base,
+      gap: Space.md,
+      width: '100%',
+      maxWidth: Layout.maxContentWidth,
+      alignSelf: 'center',
+    },
+    privacyNote: {
+      flexDirection: 'row',
+      gap: Space.sm,
+      alignItems: 'flex-start',
+      marginBottom: Space.xs,
+    },
+    assistantRow: {
+      alignItems: 'flex-start',
+    },
+    assistantBubble: {
+      maxWidth: '90%',
+      gap: Space.md,
+      padding: Space.base,
+      borderRadius: Radius.lg,
+      borderTopLeftRadius: Radius.xs,
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.border,
+    },
+    pinned: {
+      backgroundColor: c.mintLight,
+    },
+    thinking: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.sm,
+    },
+    userRow: {
+      alignItems: 'flex-end',
+    },
+    userBubble: {
+      maxWidth: '85%',
+      paddingHorizontal: Space.base,
+      paddingVertical: Space.md,
+      borderRadius: Radius.lg,
+      borderTopRightRadius: Radius.xs,
+      backgroundColor: c.primaryLight,
+    },
+    sections: {
+      gap: Space.md,
+    },
+    part: {
+      gap: Space.xs,
+    },
+    composer: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: Space.sm,
+      paddingHorizontal: Layout.screenPadding,
+      paddingTop: Space.md,
+      backgroundColor: c.surface,
+      borderTopLeftRadius: Radius.xl,
+      borderTopRightRadius: Radius.xl,
+      borderWidth: 1,
+      borderBottomWidth: 0,
+      borderColor: c.border,
+    },
+    input: {
+      ...Typography.bodyLarge,
+      flex: 1,
+      minHeight: Layout.buttonHeight,
+      maxHeight: 120,
+      paddingHorizontal: Space.lg,
+      paddingTop: 14,
+      paddingBottom: 14,
+      borderRadius: 26,
+      backgroundColor: c.backgroundSecondary,
+      color: c.textPrimary,
+    },
+    send: {
+      width: Layout.buttonHeight,
+      height: Layout.buttonHeight,
+      borderRadius: Layout.buttonHeight / 2,
+      backgroundColor: c.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sendDisabled: {
+      opacity: 0.4,
+    },
+    sendPressed: {
+      transform: [{ scale: 0.95 }],
+    },
+  });

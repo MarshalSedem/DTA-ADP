@@ -2,9 +2,11 @@ import { TabList, TabSlot, TabTrigger, Tabs } from 'expo-router/ui';
 import { StyleSheet } from 'react-native';
 
 import { FARMER_TABS, TabBarContainer, TabButton } from '@/components/tab-bar';
-import { Colors } from '@/constants/theme';
+import { type Palette } from '@/constants/theme';
+import { useStyles } from '@/theme';
 
 export default function FarmerTabsLayout() {
+  const styles = useStyles(createStyles);
   return (
     <Tabs style={styles.root}>
       <TabSlot style={styles.slot} />
@@ -22,12 +24,13 @@ export default function FarmerTabsLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  slot: {
-    flex: 1,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    slot: {
+      flex: 1,
+    },
+  });

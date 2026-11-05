@@ -1,3 +1,42 @@
+# AgriTrust — farmer app
+
+Expo (SDK 58) app for farmers. It talks to the AgriTrust API (the FastAPI backend in
+`DTA-ADP-DASHBOARD/backend`) and follows `style-guide.md` with a mint primary colour and full
+light, dark and system themes — the same tokens as the web dashboard.
+
+## Run it with the backend
+
+1. Start the API so phones on your Wi-Fi can reach it:
+
+   ```bash
+   cd ../DTA-ADP-DASHBOARD/backend
+   uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   ```
+
+2. Start the app: `npx expo start`. In development the app calls
+   `http://<the computer running Expo>:8000/api` automatically. To use another server, copy
+   `.env.example` to `.env` and set `EXPO_PUBLIC_API_URL`, then reload the app.
+
+3. Sign in with a demo farmer: phone `0244000001` (Ama K.) or `0244000002` (Kojo A.), password
+   `agritrust123`. Staff accounts are refused — they use the web dashboard.
+
+Use HTTPS for any non-local deployment; the dev setup uses plain HTTP on your local network.
+
+## How it is wired
+
+- `src/services/api-client.ts` — base URL, bearer token (SecureStore on phones, localStorage on
+  web), API error messages, and authenticated image sources for `expo-image`.
+- `src/services/farmer-api.ts` — every farmer endpoint, mapped to the types in `src/types/farmer.ts`.
+- `src/state/session.tsx` — sign-in state; `src/app/_layout.tsx` guards routes with
+  `Stack.Protected`. Signed-in screens live in `src/app/(app)/`, whose layout loads the farmer's
+  data once (`src/state/farmer-store.tsx`). Pull to refresh on Home and Human Review re-fetches,
+  e.g. to pick up an extension officer's decision.
+- `src/theme/index.tsx` — Light / Dark / System (Profile → Appearance). The choice is saved on the
+  device and also applied to native UI such as the keyboard. Palettes are in
+  `src/constants/theme.ts`; components build styles with `useStyles(createStyles)`.
+
+---
+
 # Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).

@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 import { KeyboardAvoidingView, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors, Layout, Radius, Space } from '@/constants/theme';
+import { Layout, Radius, Space, type Palette } from '@/constants/theme';
+import { useStyles } from '@/theme';
 
 import { AppText } from './app-text';
 import { Button } from './button';
@@ -35,6 +36,7 @@ export function BottomSheet({
   cancelLabel = 'Cancel',
 }: BottomSheetProps) {
   const insets = useSafeAreaInsets();
+  const styles = useStyles(createStyles);
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView behavior="padding" style={styles.root}>
@@ -79,36 +81,37 @@ export function BottomSheet({
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(28, 28, 28, 0.4)',
-  },
-  sheet: {
-    backgroundColor: Colors.surface,
-    borderTopLeftRadius: Radius['3xl'],
-    borderTopRightRadius: Radius['3xl'],
-    paddingHorizontal: Layout.screenPadding,
-    paddingTop: Space.md,
-    gap: Space.md,
-    width: '100%',
-    maxWidth: Layout.maxContentWidth,
-    alignSelf: 'center',
-  },
-  handle: {
-    alignSelf: 'center',
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.border,
-    marginBottom: Space.sm,
-  },
-  actions: {
-    gap: Space.md,
-    marginTop: Space.sm,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    backdrop: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: c.backdrop,
+    },
+    sheet: {
+      backgroundColor: c.surface,
+      borderTopLeftRadius: Radius['3xl'],
+      borderTopRightRadius: Radius['3xl'],
+      paddingHorizontal: Layout.screenPadding,
+      paddingTop: Space.md,
+      gap: Space.md,
+      width: '100%',
+      maxWidth: Layout.maxContentWidth,
+      alignSelf: 'center',
+    },
+    handle: {
+      alignSelf: 'center',
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: c.border,
+      marginBottom: Space.sm,
+    },
+    actions: {
+      gap: Space.md,
+      marginTop: Space.sm,
+    },
+  });

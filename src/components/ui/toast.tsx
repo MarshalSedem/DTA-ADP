@@ -3,7 +3,8 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors, Layout, Radius, Space } from '@/constants/theme';
+import { Layout, Radius, Space, type Palette } from '@/constants/theme';
+import { useStyles } from '@/theme';
 
 import { AppText } from './app-text';
 import { Icon } from './icon';
@@ -18,9 +19,8 @@ const ToastContext = createContext<ShowToast | null>(null);
 /** Short confirmation messages (docs/features/farmer.md §9.1). */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const insets = useSafeAreaInsets();
-  const [toast, setToast] = useState<{ id: number; message: string; kind: ToastKind } | null>(
-    null,
-  );
+  const styles = useStyles(createStyles);
+  const [toast, setToast] = useState<{ id: number; message: string; kind: ToastKind } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const show: ShowToast = (message, kind = 'success') => {
@@ -64,24 +64,27 @@ export function useToast() {
   return show;
 }
 
-const styles = StyleSheet.create({
-  host: {
-    position: 'absolute',
-    left: Layout.screenPadding,
-    right: Layout.screenPadding,
-    alignItems: 'center',
-  },
-  toast: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.sm,
-    maxWidth: Layout.maxContentWidth,
-    paddingHorizontal: Space.lg,
-    paddingVertical: Space.md,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.surfaceDark,
-  },
-  text: {
-    flexShrink: 1,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    host: {
+      position: 'absolute',
+      left: Layout.screenPadding,
+      right: Layout.screenPadding,
+      alignItems: 'center',
+    },
+    toast: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.sm,
+      maxWidth: Layout.maxContentWidth,
+      paddingHorizontal: Space.lg,
+      paddingVertical: Space.md,
+      borderRadius: Radius.full,
+      backgroundColor: c.surfaceDark,
+      borderWidth: 1,
+      borderColor: c.surfaceDarkSecondary,
+    },
+    text: {
+      flexShrink: 1,
+    },
+  });

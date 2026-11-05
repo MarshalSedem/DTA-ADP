@@ -15,9 +15,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { TextField } from '@/components/ui/text-field';
 import { useToast } from '@/components/ui/toast';
-import { Colors, Radius, Space } from '@/constants/theme';
+import { Radius, Space, type Palette } from '@/constants/theme';
 import { useReviewRequest } from '@/hooks/use-review-request';
+import { errorMessage, imageSource } from '@/services/api-client';
 import { useFarmer } from '@/state/farmer-store';
+import { useStyles, useTheme } from '@/theme';
 import { formatDate } from '@/utils/format';
 
 export default function DiagnosisResultScreen() {
@@ -25,6 +27,8 @@ export default function DiagnosisResultScreen() {
   const { diagnoses, deleteDiagnosisImage, reportIncorrectResult } = useFarmer();
   const toast = useToast();
   const review = useReviewRequest();
+  const { colors } = useTheme();
+  const styles = useStyles(createStyles);
 
   const [sheet, setSheet] = useState<'report' | 'delete' | null>(null);
   const [comment, setComment] = useState('');
@@ -50,8 +54,8 @@ export default function DiagnosisResultScreen() {
       toast('Feedback recorded for safety review');
       setSheet(null);
       setComment('');
-    } catch {
-      toast('Could not send your report. Please try again.', 'error');
+    } catch (error) {
+      toast(errorMessage(error, 'Could not send your report. Please try again.'), 'error');
     } finally {
       setBusy(false);
     }
@@ -63,8 +67,8 @@ export default function DiagnosisResultScreen() {
       await deleteDiagnosisImage(diagnosis.id);
       toast('Image deletion recorded');
       setSheet(null);
-    } catch {
-      toast('Could not delete the image. Please try again.', 'error');
+    } catch (error) {
+      toast(errorMessage(error, 'Could not delete the image. Please try again.'), 'error');
     } finally {
       setBusy(false);
     }
@@ -84,7 +88,7 @@ export default function DiagnosisResultScreen() {
 
       {diagnosis.imageUri && (
         <Image
-          source={{ uri: diagnosis.imageUri }}
+          source={imageSource(diagnosis.imageUri)}
           style={styles.image}
           contentFit="cover"
           accessibilityLabel="Your crop photo"
@@ -110,7 +114,7 @@ export default function DiagnosisResultScreen() {
       <View style={styles.section}>
         <SectionTitle>Limitations</SectionTitle>
         <Card>
-          <BulletList items={result.limitations} dotColor={Colors.textMuted} />
+          <BulletList items={result.limitations} dotColor={colors.textMuted} />
         </Card>
       </View>
 
@@ -207,27 +211,28 @@ export default function DiagnosisResultScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    gap: Space.sm,
-  },
-  image: {
-    width: '100%',
-    aspectRatio: 4 / 3,
-    borderRadius: Radius.xl,
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  cardBody: {
-    gap: Space.md,
-  },
-  section: {
-    gap: Space.md,
-  },
-  actions: {
-    gap: Space.md,
-  },
-  doneRow: {
-    alignItems: 'center',
-    paddingVertical: Space.sm,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    header: {
+      gap: Space.sm,
+    },
+    image: {
+      width: '100%',
+      aspectRatio: 4 / 3,
+      borderRadius: Radius.xl,
+      backgroundColor: c.backgroundSecondary,
+    },
+    cardBody: {
+      gap: Space.md,
+    },
+    section: {
+      gap: Space.md,
+    },
+    actions: {
+      gap: Space.md,
+    },
+    doneRow: {
+      alignItems: 'center',
+      paddingVertical: Space.sm,
+    },
+  });

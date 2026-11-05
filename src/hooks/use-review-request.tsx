@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { useToast } from '@/components/ui/toast';
+import { errorMessage } from '@/services/api-client';
 import { useFarmer } from '@/state/farmer-store';
 import type { ReviewSource } from '@/types/farmer';
 
@@ -23,8 +24,8 @@ export function useReviewRequest() {
     try {
       await requestReview(source, summary);
       toast('Review request sent');
-    } catch {
-      toast('Could not send the request. Please try again.', 'error');
+    } catch (error) {
+      toast(errorMessage(error, 'Could not send the request. Please try again.'), 'error');
     } finally {
       setBusy(false);
     }

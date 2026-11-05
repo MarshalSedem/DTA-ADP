@@ -10,9 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ToggleRow } from '@/components/ui/toggle-row';
 import { useToast } from '@/components/ui/toast';
-import { Colors, Space } from '@/constants/theme';
+import { Space, type Palette } from '@/constants/theme';
+import { errorMessage } from '@/services/api-client';
 import { saveJsonFile } from '@/services/save-json-file';
 import { useFarmer } from '@/state/farmer-store';
+import { useStyles } from '@/theme';
 import type { ConsentPurpose, Consents } from '@/types/farmer';
 
 const PURPOSES: { purpose: ConsentPurpose; title: string; description: string }[] = [
@@ -48,6 +50,7 @@ export default function PrivacyScreen() {
     buildDataExport,
   } = useFarmer();
   const toast = useToast();
+  const styles = useStyles(createStyles);
 
   const [draft, setDraft] = useState<Consents>(consents);
   const [saving, setSaving] = useState(false);
@@ -62,8 +65,8 @@ export default function PrivacyScreen() {
     try {
       await saveConsents(draft);
       toast('Consent preferences saved');
-    } catch {
-      toast('Could not save your preferences. Please try again.', 'error');
+    } catch (error) {
+      toast(errorMessage(error, 'Could not save your preferences. Please try again.'), 'error');
     } finally {
       setSaving(false);
     }
@@ -75,8 +78,8 @@ export default function PrivacyScreen() {
       const data = await buildDataExport();
       const shared = await saveJsonFile('my-agritrust-data.json', data);
       if (!shared) toast("Sharing isn't available on this device.", 'error');
-    } catch {
-      toast('Could not prepare your data. Please try again.', 'error');
+    } catch (error) {
+      toast(errorMessage(error, 'Could not prepare your data. Please try again.'), 'error');
     } finally {
       setExporting(false);
     }
@@ -88,8 +91,8 @@ export default function PrivacyScreen() {
       await requestAccountDeletion();
       toast('Account deletion request submitted');
       setDeleteSheet(false);
-    } catch {
-      toast('Could not submit the request. Please try again.', 'error');
+    } catch (error) {
+      toast(errorMessage(error, 'Could not submit the request. Please try again.'), 'error');
     } finally {
       setDeleting(false);
     }
@@ -200,6 +203,7 @@ export default function PrivacyScreen() {
 }
 
 function Field({ label, value }: { label: string; value: string }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.field}>
       <AppText variant="caption" color="textSecondary">
@@ -210,21 +214,22 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  section: {
-    gap: Space.md,
-  },
-  cardBody: {
-    gap: Space.md,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.border,
-  },
-  center: {
-    textAlign: 'center',
-  },
-  field: {
-    gap: 2,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    section: {
+      gap: Space.md,
+    },
+    cardBody: {
+      gap: Space.md,
+    },
+    divider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: c.border,
+    },
+    center: {
+      textAlign: 'center',
+    },
+    field: {
+      gap: 2,
+    },
+  });

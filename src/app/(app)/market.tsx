@@ -7,8 +7,9 @@ import { AppText } from '@/components/ui/app-text';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
-import { Colors, Space } from '@/constants/theme';
+import { Space, type Palette } from '@/constants/theme';
 import { useFarmer } from '@/state/farmer-store';
+import { useStyles } from '@/theme';
 import type { DemandLevel } from '@/types/farmer';
 import { formatDateTime, formatMoney } from '@/utils/format';
 
@@ -16,6 +17,7 @@ const DEMAND_TONE: Record<DemandLevel, BadgeTone> = { High: 'mint', Medium: 'blu
 
 export default function MarketScreen() {
   const { marketComparison: market } = useFarmer();
+  const styles = useStyles(createStyles);
 
   if (!market) {
     return (
@@ -60,8 +62,14 @@ export default function MarketScreen() {
               </View>
 
               <View style={styles.stats}>
-                <Stat label="Price / 100 kg" value={formatMoney(market.currency, p.pricePer100kg)} />
-                <Stat label="Est. transport" value={formatMoney(market.currency, p.transportCost)} />
+                <Stat
+                  label="Price / 100 kg"
+                  value={formatMoney(market.currency, p.pricePer100kg)}
+                />
+                <Stat
+                  label="Est. transport"
+                  value={formatMoney(market.currency, p.transportCost)}
+                />
               </View>
               <View style={styles.stats}>
                 <Stat
@@ -84,7 +92,8 @@ export default function MarketScreen() {
       <View style={styles.footnote}>
         <Icon name="info" size={16} color="textSecondary" />
         <AppText variant="caption" color="textSecondary" style={styles.flex}>
-          “Est. after transport” is the price minus the estimated transport cost. {market.disclaimer}
+          “Est. after transport” is the price minus the estimated transport cost.{' '}
+          {market.disclaimer}
         </AppText>
       </View>
     </Screen>
@@ -92,6 +101,7 @@ export default function MarketScreen() {
 }
 
 function Stat({ label, value, emphasis }: { label: string; value: string; emphasis?: boolean }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.stat}>
       <AppText variant="caption" color="textSecondary">
@@ -102,39 +112,40 @@ function Stat({ label, value, emphasis }: { label: string; value: string; emphas
   );
 }
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  suggestion: {
-    gap: Space.md,
-    padding: Space.xl,
-  },
-  section: {
-    gap: Space.md,
-  },
-  marketCard: {
-    gap: Space.base,
-  },
-  marketHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.md,
-  },
-  stats: {
-    flexDirection: 'row',
-    gap: Space.base,
-    paddingTop: Space.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.border,
-  },
-  stat: {
-    flex: 1,
-    gap: Space.xs,
-  },
-  footnote: {
-    flexDirection: 'row',
-    gap: Space.sm,
-    alignItems: 'flex-start',
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    suggestion: {
+      gap: Space.md,
+      padding: Space.xl,
+    },
+    section: {
+      gap: Space.md,
+    },
+    marketCard: {
+      gap: Space.base,
+    },
+    marketHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.md,
+    },
+    stats: {
+      flexDirection: 'row',
+      gap: Space.base,
+      paddingTop: Space.md,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: c.border,
+    },
+    stat: {
+      flex: 1,
+      gap: Space.xs,
+    },
+    footnote: {
+      flexDirection: 'row',
+      gap: Space.sm,
+      alignItems: 'flex-start',
+    },
+  });

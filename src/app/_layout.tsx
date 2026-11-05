@@ -1,39 +1,56 @@
-import { Stack, type NativeStackNavigationOptions } from 'expo-router';
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 
 import { ToastProvider } from '@/components/ui/toast';
-import { Colors } from '@/constants/theme';
-import { FarmerProvider } from '@/state/farmer-store';
+import { SessionProvider, useSession } from '@/state/session';
+import { ThemeProvider, useTheme } from '@/theme';
 
-/** Header used by detail pages pushed on top of the tabs. */
-const detailHeader: NativeStackNavigationOptions = {
-  headerShown: true,
-  headerShadowVisible: false,
-  headerStyle: { backgroundColor: Colors.background },
-  headerTintColor: Colors.textPrimary,
-  headerTitleStyle: { fontWeight: '600' },
-  headerBackButtonDisplayMode: 'minimal',
-};
+// Keep the splash screen up while the saved session is checked.
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   return (
-    <FarmerProvider>
-      <ToastProvider>
-        <StatusBar style="dark" />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: Colors.background },
-          }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="adviser" options={{ ...detailHeader, title: 'Ask AI Adviser' }} />
-          <Stack.Screen name="diagnosis/[id]" options={{ ...detailHeader, title: 'Diagnosis result' }} />
-          <Stack.Screen name="market" options={{ ...detailHeader, title: 'Market Prices' }} />
-          <Stack.Screen name="reviews/index" options={{ ...detailHeader, title: 'Human Review' }} />
-          <Stack.Screen name="reviews/[id]" options={{ ...detailHeader, title: 'Review case' }} />
-          <Stack.Screen name="privacy" options={{ ...detailHeader, title: 'My Data & Privacy' }} />
-        </Stack>
-      </ToastProvider>
-    </FarmerProvider>
+    <ThemeProvider>
+      <SessionProvider>
+        <ToastProvider>
+          <RootNavigator />
+        </ToastProvider>
+      </SessionProvider>
+    </ThemeProvider>
+  );
+}
+
+function RootNavigator() {
+  const { status } = useSession();
+  const { colors, scheme } = useTheme();
+  const signedIn = status === 'signedIn';
+
+  useEffect(() => {
+    if (status !== 'loading') SplashScreen.hide();
+  }, [status]);
+
+  // Don't mount the navigator until we know whether the farmer is signed in; otherwise the
+  // guards briefly treat them as signed out and a deep link (e.g. /reviews/AGR-…) is lost.
+  if (status === 'loading') return null;
+
+  return (
+    <>
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
+        }}>
+        {/* Farmers must sign in; the API enforces the same rule on every request. */}
+        <Stack.Protected guard={signedIn}>
+          <Stack.Screen name="(app)" />
+        </Stack.Protected>
+        <Stack.Protected guard={!signedIn}>
+          <Stack.Screen name="sign-in" />
+        </Stack.Protected>
+      </Stack>
+    </>
   );
 }

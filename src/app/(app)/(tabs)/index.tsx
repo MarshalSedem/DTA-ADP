@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/ui/app-text';
@@ -9,21 +9,39 @@ import { Card, PressableCard } from '@/components/ui/card';
 import { FAB_CLEARANCE, FloatingActionButton } from '@/components/ui/floating-action-button';
 import { Icon } from '@/components/ui/icon';
 import { IconButton } from '@/components/ui/icon-button';
-import { Colors, Layout, Radius, Space } from '@/constants/theme';
+import { Layout, Radius, Space, type Palette } from '@/constants/theme';
 import { useFarmer } from '@/state/farmer-store';
+import { useStyles, useTheme } from '@/theme';
 
 const TRUST_POINTS = ['Privacy controls active', 'Secure access', 'Human review available'];
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { profile, activeFarmRecords, pendingReviewCount, latestRecommendation, marketComparison } =
-    useFarmer();
+  const {
+    profile,
+    activeFarmRecords,
+    pendingReviewCount,
+    latestRecommendation,
+    marketComparison,
+    refresh,
+    refreshing,
+  } = useFarmer();
+  const { colors } = useTheme();
+  const styles = useStyles(createStyles);
 
   return (
     <View style={styles.screen}>
       <ScrollView
         style={styles.flex}
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + Space.base }]}>
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + Space.base }]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => void refresh().catch(() => {})}
+            tintColor={colors.primaryStrong}
+            colors={[colors.primaryStrong]}
+          />
+        }>
         {/* Greeting + notifications */}
         <View style={styles.header}>
           <View style={styles.flex}>
@@ -56,7 +74,7 @@ export default function HomeScreen() {
             {TRUST_POINTS.map((point) => (
               <View key={point} style={styles.trustRow}>
                 <View style={styles.trustCheck}>
-                  <Icon name="check" size={14} />
+                  <Icon name="check" size={14} color="ink" />
                 </View>
                 <AppText variant="label" color="textInverse">
                   {point}
@@ -109,7 +127,7 @@ export default function HomeScreen() {
           </View>
           <Card tone="mint" style={styles.sharingTile}>
             <View style={styles.sharingIcon}>
-              <Icon name="lock" size={20} />
+              <Icon name="lock" size={20} color="ink" />
             </View>
             <View style={styles.flex}>
               <AppText variant="cardHeading">All optional</AppText>
@@ -200,114 +218,111 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      <FloatingActionButton
-        icon="adviser"
-        label="Ask AI"
-        onPress={() => router.push('/adviser')}
-      />
+      <FloatingActionButton icon="adviser" label="Ask AI" onPress={() => router.push('/adviser')} />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  content: {
-    paddingHorizontal: Layout.screenPadding,
-    paddingBottom: FAB_CLEARANCE,
-    gap: Space.xl,
-    width: '100%',
-    maxWidth: Layout.maxContentWidth,
-    alignSelf: 'center',
-  },
-  flex: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.md,
-  },
-  hero: {
-    gap: Space.base,
-    padding: Space.xl,
-  },
-  trustList: {
-    gap: Space.sm,
-  },
-  trustRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.md,
-  },
-  trustCheck: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: Colors.mint,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroActions: {
-    gap: Space.md,
-    marginTop: Space.xs,
-  },
-  section: {
-    gap: Space.md,
-  },
-  metricRow: {
-    flexDirection: 'row',
-    gap: Space.md,
-  },
-  metric: {
-    flex: 1,
-    gap: Space.xs,
-    borderRadius: Radius.lg,
-  },
-  metricTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  sharingTile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.base,
-    borderRadius: Radius.lg,
-  },
-  sharingIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.mint,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardBody: {
-    gap: Space.md,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Space.md,
-    paddingVertical: Space.md,
-  },
-  priceMarket: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.sm,
-    flexShrink: 1,
-  },
-  divider: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.border,
-  },
-  disclaimer: {
-    flexDirection: 'row',
-    gap: Space.sm,
-    alignItems: 'flex-start',
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    content: {
+      paddingHorizontal: Layout.screenPadding,
+      paddingBottom: FAB_CLEARANCE,
+      gap: Space.xl,
+      width: '100%',
+      maxWidth: Layout.maxContentWidth,
+      alignSelf: 'center',
+    },
+    flex: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.md,
+    },
+    hero: {
+      gap: Space.base,
+      padding: Space.xl,
+    },
+    trustList: {
+      gap: Space.sm,
+    },
+    trustRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.md,
+    },
+    trustCheck: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: c.mint,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    heroActions: {
+      gap: Space.md,
+      marginTop: Space.xs,
+    },
+    section: {
+      gap: Space.md,
+    },
+    metricRow: {
+      flexDirection: 'row',
+      gap: Space.md,
+    },
+    metric: {
+      flex: 1,
+      gap: Space.xs,
+      borderRadius: Radius.lg,
+    },
+    metricTop: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    sharingTile: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.base,
+      borderRadius: Radius.lg,
+    },
+    sharingIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: c.mint,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cardBody: {
+      gap: Space.md,
+    },
+    priceRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: Space.md,
+      paddingVertical: Space.md,
+    },
+    priceMarket: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Space.sm,
+      flexShrink: 1,
+    },
+    divider: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: c.border,
+    },
+    disclaimer: {
+      flexDirection: 'row',
+      gap: Space.sm,
+      alignItems: 'flex-start',
+    },
+  });
